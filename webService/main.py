@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends, File, UploadFile, HTTPException
+import io
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,13 +11,13 @@ import csv
 
 app = FastAPI()
 
-# Habilitar CORS
+# Configura CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Puedes restringir a dominios específicos
+    allow_origins=["http://localhost:3000"],  # Permite solicitudes desde este origen
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Permite cualquier método (GET, POST, etc.)
+    allow_headers=["*"],  # Permite cualquier encabezado
 )
 
 # Configuración de SQLite
@@ -132,30 +133,25 @@ def get_db():
         db.close()
 
 
-# Habilitar CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Puedes restringir a dominios específicos
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # Servicio para importar datos de sensores
 @app.post("/importar_sensores/")
-async def importar_sensores(tipo_dato: str, archivo: UploadFile = File(...), db: Session = Depends(get_db)):
+async def importar_sensores(
+    tipo_dato: str = Form(...),  # Acepta tipo_dato desde un formulario
+    archivo: UploadFile = File(...),  # Recibe archivo como parte de FormData
+    db: Session = Depends(get_db)
+):
     try:
         # Leer el archivo CSV
         contenido = await archivo.read()
         archivo_csv = io.StringIO(contenido.decode("utf-8"))
         lector = csv.reader(archivo_csv)
-        encabezado = next(lector)  # Saltar la primera línea del archivo CSV
+        next(lector)  # Saltar la primera línea del archivo CSV
 
         # Validación del tipo de dato
         if tipo_dato == "pesos":
             for fila in lector:
                 fecha, peso = fila
-                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")
+                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
                 peso = float(peso)
                 nuevo_peso = Weight(date=fecha, weight=peso, userId=1)  # Ejemplo: asignar el ID de usuario 1
                 actualizar_o_insertar(db, Weight, nuevo_peso)
@@ -163,7 +159,7 @@ async def importar_sensores(tipo_dato: str, archivo: UploadFile = File(...), db:
         elif tipo_dato == "alturas":
             for fila in lector:
                 fecha, altura = fila
-                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")
+                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
                 altura = float(altura)
                 nueva_altura = Height(date=fecha, height=altura, userId=1)
                 actualizar_o_insertar(db, Height, nueva_altura)
@@ -171,7 +167,7 @@ async def importar_sensores(tipo_dato: str, archivo: UploadFile = File(...), db:
         elif tipo_dato == "composicion_corporal":
             for fila in lector:
                 fecha, grasa, musculo, agua = fila
-                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")
+                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
                 grasa = float(grasa)
                 musculo = float(musculo)
                 agua = float(agua)
@@ -181,7 +177,7 @@ async def importar_sensores(tipo_dato: str, archivo: UploadFile = File(...), db:
         elif tipo_dato == "porcentaje_grasa":
             for fila in lector:
                 fecha, porcentaje_grasa = fila
-                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")
+                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
                 porcentaje_grasa = float(porcentaje_grasa)
                 nuevo_porcentaje_grasa = BodyFatPercentage(date=fecha, fat_percentage=porcentaje_grasa, userId=1)
                 actualizar_o_insertar(db, BodyFatPercentage, nuevo_porcentaje_grasa)
@@ -189,7 +185,7 @@ async def importar_sensores(tipo_dato: str, archivo: UploadFile = File(...), db:
         elif tipo_dato == "vasos_de_agua":
             for fila in lector:
                 fecha, vasos_agua = fila
-                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")
+                fecha = datetime.datetime.now().date()  # Usar la fecha actual
                 vasos_agua = int(vasos_agua)
                 nuevo_consumo_agua = WaterConsumption(date=fecha, water_amount=vasos_agua, userId=1)
                 actualizar_o_insertar(db, WaterConsumption, nuevo_consumo_agua)
@@ -197,7 +193,7 @@ async def importar_sensores(tipo_dato: str, archivo: UploadFile = File(...), db:
         elif tipo_dato == "pasos_diarios":
             for fila in lector:
                 fecha, cantidad_pasos = fila
-                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")
+                fecha = datetime.datetime.now().date()  # Usar la fecha actual
                 cantidad_pasos = int(cantidad_pasos)
                 nuevos_pasos = DailySteps(date=fecha, steps_amount=cantidad_pasos, userId=1)
                 actualizar_o_insertar(db, DailySteps, nuevos_pasos)
@@ -205,7 +201,7 @@ async def importar_sensores(tipo_dato: str, archivo: UploadFile = File(...), db:
         elif tipo_dato == "ejercicios":
             for fila in lector:
                 fecha, nombre_ejercicio, duracion = fila
-                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")
+                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
                 duracion = int(duracion)
                 nuevo_ejercicio = Exercise(date=fecha, exercise_name=nombre_ejercicio, duration=duracion, userId=1)
                 actualizar_o_insertar(db, Exercise, nuevo_ejercicio)
@@ -219,7 +215,6 @@ async def importar_sensores(tipo_dato: str, archivo: UploadFile = File(...), db:
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=f"Error al importar datos: {e}")
-
 
 # Función para actualizar o insertar un registro si existe o no
 def actualizar_o_insertar(db: Session, modelo, nuevo_registro):

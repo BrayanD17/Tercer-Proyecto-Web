@@ -1,23 +1,18 @@
-import logo from './logo.svg';
+import React from 'react';
 import './App.css';
+import NavigationBar from './components/NavigationBar'; // Asegúrate de que la ruta sea correcta
 
 function App() {
+  // Esta función maneja la importación de datos desde el formulario
+  const handleDataImport = (tipoDato, mensaje) => {
+    // Aquí puedes manejar lo que quieras hacer con los datos importados
+    console.log(`Tipo de dato importado: ${tipoDato}, Mensaje: ${mensaje}`);
+    // Puedes agregar más lógica aquí, como mostrar notificaciones, actualizar estado, etc.
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <NavigationBar onImportData={handleDataImport} />
     </div>
   );
 }
