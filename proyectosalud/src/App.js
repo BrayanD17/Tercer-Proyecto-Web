@@ -1,19 +1,30 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
-import NavigationBar from './components/NavigationBar'; // Asegúrate de que la ruta sea correcta
+import NavigationBar from './components/NavigationBar';
+import UserProfile from './components/UserProfile'; // Importa el componente UserProfile
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 function App() {
-  // Esta función maneja la importación de datos desde el formulario
   const handleDataImport = (tipoDato, mensaje) => {
-    // Aquí puedes manejar lo que quieras hacer con los datos importados
     console.log(`Tipo de dato importado: ${tipoDato}, Mensaje: ${mensaje}`);
-    // Puedes agregar más lógica aquí, como mostrar notificaciones, actualizar estado, etc.
+  };
+
+  const handleUserProfileClick = () => {
+    // Aquí puedes manejar la redirección al perfil del usuario
+    window.location.href = '/perfil'; // Redirige a la página de perfil
   };
 
   return (
-    <div className="App">
-      <NavigationBar onImportData={handleDataImport} />
-    </div>
+    <Router>
+      <div className="App">
+        <NavigationBar onImportData={handleDataImport} onUserProfileClick={handleUserProfileClick} />
+        <Routes>
+          <Route path="/perfil" element={<UserProfile />} />
+          {/* Define aquí otras rutas si es necesario */}
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

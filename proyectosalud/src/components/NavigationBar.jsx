@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import Background from './Background';
 import ImportDataForm from './ImportDataForm';
 import '../styles/NavigationBar.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Importa FontAwesomeIcon
+import { faArrowUpFromBracket, faCircleUser } from '@fortawesome/free-solid-svg-icons'; // Importa los íconos
 
-const NavigationBar = ({ onImportData }) => {
+const NavigationBar = ({ onImportData, onUserProfileClick }) => {
   const [isFormVisible, setIsFormVisible] = useState(false);
-  const [message, setMessage] = useState(''); // Para manejar mensajes
+  const [message, setMessage] = useState('');
 
   const handleImportClick = () => {
     setIsFormVisible(true);
@@ -26,8 +28,22 @@ const NavigationBar = ({ onImportData }) => {
   return (
     <>
       <nav className="navbar">
-        <h1 className="title">Dashboard</h1>
-        <button className="button" onClick={handleImportClick}>+ Importar CSV</button>
+        {/* Nombre de nuestro Proyecto*/}
+        <h1 className="title">FitTrack</h1>
+
+        {/* Icono para importar CSV con FontAwesomeIcon */}
+        <div className="import-data-icon" onClick={handleImportClick} title="Importar datos de sensores">
+          <FontAwesomeIcon icon={faArrowUpFromBracket} style={{ color: '#ffffff', fontSize: '24px' }} />
+        </div>
+
+        {/* Reemplazar imagen de usuario por el ícono circle-user */}
+        <FontAwesomeIcon
+          icon={faCircleUser}
+          className="user-icon"
+          style={{ color: '#ffffff', fontSize: '40px', cursor: 'pointer' }}
+          onClick={onUserProfileClick} // Redirigir al perfil al hacer clic
+          title="Perfil de usuario"
+        />
       </nav>
 
       {isFormVisible && (
@@ -38,7 +54,7 @@ const NavigationBar = ({ onImportData }) => {
           />
         </Background>
       )}
-      
+
       {message && <p>{message}</p>} {/* Mostrar mensaje de importación */}
     </>
   );
