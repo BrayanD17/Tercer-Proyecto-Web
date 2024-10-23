@@ -181,11 +181,10 @@ async def importar_sensores(
                 porcentaje_grasa = float(porcentaje_grasa)
                 nuevo_porcentaje_grasa = BodyFatPercentage(date=fecha, fat_percentage=porcentaje_grasa, userId=1)
                 actualizar_o_insertar(db, BodyFatPercentage, nuevo_porcentaje_grasa)
-
         elif tipo_dato == "vasos_de_agua":
             for fila in lector:
                 fecha, vasos_agua = fila
-                fecha = datetime.datetime.now().date()  # Usar la fecha actual
+                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()  # Usar la fecha del archivo
                 vasos_agua = int(vasos_agua)
                 nuevo_consumo_agua = WaterConsumption(date=fecha, water_amount=vasos_agua, userId=1)
                 actualizar_o_insertar(db, WaterConsumption, nuevo_consumo_agua)
@@ -193,7 +192,7 @@ async def importar_sensores(
         elif tipo_dato == "pasos_diarios":
             for fila in lector:
                 fecha, cantidad_pasos = fila
-                fecha = datetime.datetime.now().date()  # Usar la fecha actual
+                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()  # Usar la fecha del archivo
                 cantidad_pasos = int(cantidad_pasos)
                 nuevos_pasos = DailySteps(date=fecha, steps_amount=cantidad_pasos, userId=1)
                 actualizar_o_insertar(db, DailySteps, nuevos_pasos)

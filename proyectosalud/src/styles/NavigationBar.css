@@ -1,33 +1,65 @@
 .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #333;
-    padding: 10px 20px;
-    color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #1565C0; /* Color más oscuro para un estilo moderno */
+  padding: 15px 20px; /* Espaciado mayor para más aire */
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Añadir sombra para efecto de profundidad */
 }
 
 .title {
-    font-size: 24px;
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0;
+  color: #FFFFFF;
+  margin-right: auto; /* Asegura que el título se alinee a la izquierda */
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.button {
-    background-color: #4CAF50;
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+
+/* Estilo del icono de importación */
+.import-data-icon {
+  font-size: 28px; /* Tamaño del icono mayor para mejor visibilidad */
+  color: white;
+  cursor: pointer;
+  margin-right: 25px; /* Más espacio entre el icono y el borde */
+  transition: transform 0.3s ease, color 0.3s ease; /* Transición suave para efectos */
 }
 
-.button:hover {
-    background-color: #45a049;
+.import-data-icon:hover {
+  color: #64DD17; /* Verde para destacar al hacer hover */
+  transform: scale(1.2); /* Aumenta el tamaño al hacer hover */
 }
 
-.navbar .button {
-    margin-left: auto;
+/* Estilo del icono de perfil de usuario */
+.user-icon {
+  font-size: 40px; /* Asegura que el ícono sea visible y proporcional */
+  cursor: pointer;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.user-icon:hover {
+  color: #64DD17; /* Cambia de color al hacer hover */
+  transform: scale(1.2); /* Aumenta el tamaño al hacer hover */
+}
+
+/* Para una experiencia móvil más fluida */
+@media (max-width: 425px) {
+  .navbar {
+    padding: 10px;
+    flex-direction: column;
+  }
+
+  .title {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+
+  .import-data-icon,
+  .user-icon {
+    font-size: 32px;
+    margin-right: 10px;
+  }
 }

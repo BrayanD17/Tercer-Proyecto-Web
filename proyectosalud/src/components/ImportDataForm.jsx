@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import '../styles/ImportDataForm.css';
 
-const ImportDataForm = ({ onCancel }) => { // Recibe onCancel como prop
+const ImportDataForm = ({ onCancel }) => {
   const [tipoDato, setTipoDato] = useState('');
   const [archivo, setArchivo] = useState(null);
   const [mensaje, setMensaje] = useState('');
+  const archivoInputRef = useRef(null); // Referencia al input de archivo
 
   const tiposDatos = [
     { value: 'pesos', label: 'Importar pesos (fecha, peso)' },
@@ -43,6 +44,11 @@ const ImportDataForm = ({ onCancel }) => { // Recibe onCancel como prop
       setMensaje(response.data.mensaje);
       setTipoDato('');
       setArchivo(null);
+
+      // Resetear el valor del input de archivo
+      if (archivoInputRef.current) {
+        archivoInputRef.current.value = null;
+      }
     } catch (error) {
       setMensaje(`Error al importar datos: ${error.response ? error.response.data.detail : error.message}`);
     }
@@ -75,11 +81,12 @@ const ImportDataForm = ({ onCancel }) => { // Recibe onCancel como prop
               id="archivo"
               accept=".csv"
               onChange={handleFileChange}
+              ref={archivoInputRef}  // Asigna la referencia al input de archivo
             />
           </div>
           <div className="button-group">
             <button type="submit" className="button add">Importar</button>
-            <button type="button" className="button cancel" onClick={onCancel}>Cancelar</button> {/* Usa onCancel */}
+            <button type="button" className="button cancel" onClick={onCancel}>Cancelar</button>
           </div>
         </form>
         {mensaje && <p>{mensaje}</p>}
