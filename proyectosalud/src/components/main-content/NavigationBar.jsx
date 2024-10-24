@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Background from './Background';
 import ImportDataForm from './ImportDataForm';
-import '../styles/NavigationBar.css';
+import '../../styles/NavigationBar.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Importa FontAwesomeIcon
 import { faArrowUpFromBracket, faCircleUser } from '@fortawesome/free-solid-svg-icons'; // Importa los íconos
 
@@ -29,7 +29,7 @@ const NavigationBar = ({ onImportData, onUserProfileClick }) => {
     <>
       <nav className="navbar">
         {/* Nombre de nuestro Proyecto*/}
-        <h1 className="title">FitTrack</h1>
+        <h1 className="title">HealthSync</h1>
 
         {/* Icono para importar CSV con FontAwesomeIcon */}
         <div className="import-data-icon" onClick={handleImportClick} title="Importar datos de sensores">
