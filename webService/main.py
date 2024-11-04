@@ -3,14 +3,18 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_engine, Column, Integer, String, Date, DECIMAL, ForeignKey, Enum
+from sqlalchemy import create_engine, Column, Integer, Float, String, Date, DECIMAL, ForeignKey, Enum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 import datetime
 import csv
+from pydantic import BaseModel
+from sqlalchemy.exc import IntegrityError
+from passlib.context import CryptContext
+from jose import JWTError, jwt
+from datetime import timedelta
 
 app = FastAPI()
-
 # Configura CORS
 app.add_middleware(
     CORSMiddleware,
@@ -19,7 +23,6 @@ app.add_middleware(
     allow_methods=["*"],  # Permite cualquier método (GET, POST, etc.)
     allow_headers=["*"],  # Permite cualquier encabezado
 )
-
 # Configuración de SQLite
 DATABASE_URL = "sqlite:///./fitness_app.db"
 engine = create_engine(DATABASE_URL)
@@ -29,13 +32,15 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True)
-    username = Column(String, index=True)
-    password = Column(String)
-    birthday = Column(Date)
-    gender = Column(Enum('Male', 'Female', 'Other'), nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    username = Column(String, unique=True, index=True, nullable=False)
+    password = Column(String, nullable=False)
+    birthday = Column(Date, nullable=False)
+    gender = Column(Enum('Masculino', 'Femenino'), nullable=False)
+    current_weight = Column(Float, nullable=False)  # Peso actual en kg
+    current_height = Column(Float, nullable=False)  # Altura actual en cm
 
-    # Relaciones con las otras tablas
+    # Relaciones con las otras tablas (las mantenemos igual)
     weights = relationship("Weight", back_populates="user")
     heights = relationship("Height", back_populates="user")
     body_fat_percentages = relationship("BodyFatPercentage", back_populates="user")
@@ -44,6 +49,69 @@ class User(Base):
     daily_steps = relationship("DailySteps", back_populates="user")
     exercises = relationship("Exercise", back_populates="user")
 
+# Modelo de solicitud para registro con validaciones específicas
+class RegisterUserRequest(BaseModel):
+    email: str
+    username: str
+    password: str
+    birthday: datetime.date
+    gender: str
+    current_weight: float
+    current_height: float
+
+@app.post("/register/")
+async def register_user(user: RegisterUserRequest, db: Session = Depends(get_db)):
+    # Cifrar la contraseña
+    hashed_password = pwd_context.hash(user.password)
+    new_user = User(
+        email=user.email,
+        username=user.username,
+        password=hashed_password,
+        birthday=user.birthday,
+        gender=user.gender,
+        current_weight=user.current_weight,  
+        current_height=user.current_height   
+    )
+    try:
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        return {"message": "Usuario registrado con éxito"}
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="El correo electrónico o nombre de usuario ya está registrado")
+
+# Configuración del token
+SECRET_KEY = "your_secret_key"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+def create_access_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+@app.post("/login/")
+async def login(user: LoginRequest, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.email == user.email).first()
+    if db_user is None or not pwd_context.verify(user.password, db_user.password):
+        raise HTTPException(status_code=400, detail="Credenciales incorrectas")
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(data={"sub": db_user.email}, expires_delta=access_token_expires)
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post("/logout/")
+async def logout():
+    return {"message": "Sesión cerrada con éxito"}
 
 class Weight(Base):
     __tablename__ = "weights"
@@ -53,7 +121,6 @@ class Weight(Base):
     
     # Relación con usuario
     user = relationship("User", back_populates="weights")
-
 
 class Height(Base):
     __tablename__ = "heights"

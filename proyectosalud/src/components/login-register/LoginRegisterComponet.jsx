@@ -1,7 +1,8 @@
+// src/components/login-register/LoginRegisterComponent.jsx
 import React, { useState } from 'react';
 import Login from './Login';
 import Register from './Register';
-import MainComponent from '../main-content/MainComponent'
+import MainComponent from '../main-content/MainComponent';
 
 const LoginRegisterComponent = () => {
   const [isRegistering, setIsRegistering] = useState(false);
