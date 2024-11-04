@@ -1,0 +1,84 @@
+/* Dashboard.css */
+.principal-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+
+.izquierda {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 65%;
+    margin-left: 45px;
+}
+
+.derecha {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: space-between;
+    width: 35%; 
+    margin-left: 20px;
+}
+
+.weights-container, .body-pat-percentaje-container, .daily-step-container, .body-composition-container, .exercise-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+.weights-container, .body-pat-percentaje-container, .daily-step-container {
+    grid-column: span 1;
+    min-width: 226px; /* Ancho mínimo */
+    height: auto; /* Ajusta el alto automáticamente */
+    max-height: 100px; /* Alto máximo */
+    overflow: hidden; /* Oculta el contenido que exceda el alto máximo */
+}
+
+.body-composition-container {
+    grid-column: span 3;
+    width: auto; /* Ajusta el ancho automáticamente */
+    max-width: 800px; /* Ancho máximo */
+    height: auto; /* Ajusta el alto automáticamente */
+    max-height: 600px; /* Alto máximo */
+    overflow: auto;
+}
+
+.exercise-container {
+    grid-column: span 3;
+    width: auto; /* Ajusta el ancho automáticamente */
+    max-width: 800px; /* Ancho máximo */
+    height: auto; /* Ajusta el alto automáticamente */
+    max-height: 600px; /* Alto máximo */
+    overflow: auto;
+}
+
+.heights-container, .water-consumption-container, .IMC-conteiner{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    min-height: 250px; /* Altura mínima */
+    height: 100%; /* Asegura que los contenedores llenen la altura de la fila */
+    overflow: hidden;
+}
+
+/*Pequeñas y menores*/
+@media (max-width: 430px) {}
+/* Pequeño (tabletas en modo vertical) */
+@media (min-width: 576px) and (max-width: 768px) {}
+/* Mediano (tabletas en modo horizontal) */
+@media (min-width: 768px) and (max-width: 1024px) {}
+/* Grande (laptops pequeñas) */
+@media (min-width: 1025px) and (max-width: 1440px) {}
+/* Extra grande (pantallas grandes) */
+@media (min-width: 1441px) {}
