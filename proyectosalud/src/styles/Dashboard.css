@@ -1,9 +1,15 @@
 /* Dashboard.css */
-.principal-container {
+.principal-container{
+    background-color: #f4f4f4;
+     min-height: 100vh; /* Asegura que el contenedor ocupe al menos el 100% de la altura de la ventana */
+    padding: 20px;
+
+}
+
+.vista-general {
     display: flex;
     justify-content: space-between;
     padding: 20px;
-    background-color: #f4f4f4;
 }
 
 .izquierda {
@@ -11,7 +17,7 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     width: 65%;
-    margin-left: 45px;
+    /*margin-left: 45px;*/
 }
 
 .derecha {
@@ -20,7 +26,7 @@
     gap: 10px;
     justify-content: space-between;
     width: 35%; 
-    margin-left: 20px;
+    margin-left: 15px;
 }
 
 .weights-container, .body-pat-percentaje-container, .daily-step-container, .body-composition-container, .exercise-container{
@@ -70,6 +76,10 @@
     min-height: 250px; /* Altura mínima */
     height: 100%; /* Asegura que los contenedores llenen la altura de la fila */
     overflow: hidden;
+}
+
+.vista-historicos{
+    margin-bottom: 10vh;
 }
 
 /*Pequeñas y menores*/
