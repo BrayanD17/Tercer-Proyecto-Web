@@ -1,4 +1,3 @@
-// src/components/login-register/LoginRegisterComponent.jsx
 import React, { useState } from 'react';
 import Login from './Login';
 import Register from './Register';
@@ -20,6 +19,10 @@ const LoginRegisterComponent = () => {
     setIsRegistering(false);
   };
 
+  const handleCancel = () => {
+    setIsRegistering(false); // Cambia a Login al hacer clic en Cancelar
+  };
+
   if (isLoggedIn) {
     return <MainComponent />;
   }
@@ -27,7 +30,7 @@ const LoginRegisterComponent = () => {
   return (
     <div>
       {isRegistering ? (
-        <Register onSubmit={handleRegisterSubmit} />
+        <Register onSubmit={handleRegisterSubmit} onCancel={handleCancel} />
       ) : (
         <Login onSubmit={handleLoginSubmit} onRegisterClick={handleRegisterClick} />
       )}
