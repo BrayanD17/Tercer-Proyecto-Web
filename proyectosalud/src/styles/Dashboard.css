@@ -49,7 +49,7 @@
 .body-composition-container {
     grid-column: span 3;
     width: auto; /* Ajusta el ancho automáticamente */
-    max-width: 800px; /* Ancho máximo */
+    max-width: 100%; /* Ancho máximo */
     height: auto; /* Ajusta el alto automáticamente */
     max-height: 600px; /* Alto máximo */
     overflow: auto;
@@ -58,7 +58,7 @@
 .exercise-container {
     grid-column: span 3;
     width: auto; /* Ajusta el ancho automáticamente */
-    max-width: 800px; /* Ancho máximo */
+    max-width: 100%; /* Ancho máximo */
     height: auto; /* Ajusta el alto automáticamente */
     max-height: 600px; /* Alto máximo */
     overflow: auto;
@@ -92,39 +92,4 @@
 }
 /* Extra grande (pantallas grandes) */
 @media (min-width: 1441px) {}
-
-/* Pantallas pequeñas, para presentar en clases*/
-@media (min-width: 1020px) {
-    .vista-general {
-        padding: 40px; /* Aumenta el padding para pantallas grandes */
-    }
-
-    .izquierda {
-        width: 70%; /* Aumenta el ancho de la columna izquierda */
-    }
-
-    .derecha {
-        width: 30%; /* Reduce el ancho de la columna derecha */
-        margin-left: 20px; /* Aumenta el margen izquierdo */
-    }
-
-    .weights-container, 
-    .body-pat-percentaje-container, 
-    .daily-step-container {
-        min-width: 250px; /* Aumenta el ancho mínimo en pantallas grandes */
-        max-height: 120px; /* Aumenta el alto máximo */
-    }
-
-    .body-composition-container,
-    .exercise-container {
-        max-width: 900px; /* Aumenta el ancho máximo para gráficas */
-        max-height: 700px; /* Aumenta el alto máximo */
-    }
-
-    .heights-container, 
-    .water-consumption-container, 
-    .IMC-conteiner {
-        min-height: 300px; /* Aumenta la altura mínima para contenedores */
-    }
-}
 
