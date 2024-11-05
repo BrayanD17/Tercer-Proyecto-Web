@@ -1,61 +1,93 @@
 .register-container {
-    width: 100%;
-    max-width: 500px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  }
-  
-  .register-title {
-    text-align: center;
-    color: #2E8B57;
-    font-size: 24px;
-    margin-bottom: 20px;
-  }
-  
-  .register-form {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  .form-group label {
-    font-size: 14px;
-    color: #333;
-  }
-  
-  .form-group input,
-  .form-group select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-top: 5px;
-  }
-  
-  .button-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-  }
-  
-  .btn-register {
-    width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #fff;
-    background-color: #4CAF50; /* Verde */
-  }
-  
-  .btn-register:hover {
-    opacity: 0.9;
-  }
-  
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.register-title {
+  text-align: center;
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.register-form .form-group {
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.register-form label {
+  display: block;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.register-form input,
+.register-form select {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  transition: border-color 0.3s;
+}
+
+.register-form input:focus,
+.register-form select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+}
+
+.btn-register,
+.btn-login {
+  padding: 0.75rem 1.5rem;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-login {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.btn-register {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.btn-login:hover {
+  background-color: #0056b3;
+}
+
+.btn-register:hover {
+  background-color: #218838;
+}
+
+/* Estilo para el botón Eye en el campo de contraseña */
+.eye-icon {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #666;
+  font-size: 18px;
+}
+
+.eye-icon:hover {
+  color: #333;
+}

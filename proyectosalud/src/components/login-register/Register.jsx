@@ -1,7 +1,7 @@
-// src/components/login-register/Register.jsx
 import React, { useState, useContext } from 'react';
 import '../../styles/Register.css';
-import { AuthContext } from '../context/AuthContext'; // Importar el contexto de autenticación
+import { AuthContext } from '../../context/AuthContext';
+import { Eye, EyeOff } from 'lucide-react'; // Importa los íconos de Lucide
 
 const Register = ({ onSubmit }) => {
   const { register } = useContext(AuthContext);
@@ -14,6 +14,7 @@ const Register = ({ onSubmit }) => {
     birthday: '',
     gender: 'Masculino'
   });
+  const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar la contraseña
 
   const handleChange = (e) => {
     setFormData({
@@ -33,6 +34,10 @@ const Register = ({ onSubmit }) => {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <div className="register-container">
       <h2 className="register-title">Registro - Fit Connect</h2>
@@ -47,7 +52,17 @@ const Register = ({ onSubmit }) => {
         </div>
         <div className="form-group">
           <label htmlFor="password">Contraseña:</label>
-          <input type="password" id="password" name="password" onChange={handleChange} required />
+          <input
+            type={showPassword ? "text" : "password"}
+            id="password"
+            name="password"
+            onChange={handleChange}
+            required
+          />
+          {/* Ícono de ojo para mostrar/ocultar la contraseña */}
+          <span className="eye-icon" onClick={togglePasswordVisibility}>
+            {showPassword ? <EyeOff /> : <Eye />}
+          </span>
         </div>
         <div className="form-group">
           <label htmlFor="current_weight">Peso actual (kg):</label>
@@ -69,6 +84,7 @@ const Register = ({ onSubmit }) => {
           </select>
         </div>
         <div className="button-container">
+          <button type="submit" className="btn-login">Iniciar sesión</button>
           <button type="submit" className="btn-register">Registrarse</button>
         </div>
       </form>

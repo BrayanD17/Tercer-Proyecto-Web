@@ -1,68 +1,87 @@
+/* src/styles/Login.css */
+
 .login-container {
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  }
-  
-  .login-title {
-    text-align: center;
-    color: #2E8B57;
-    font-size: 24px;
-    margin-bottom: 20px;
-  }
-  
-  .login-form {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  .form-group label {
-    font-size: 14px;
-    color: #333;
-  }
-  
-  .form-group input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-top: 5px;
-  }
-  
-  .button-container {
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  .btn-login,
-  .btn-register {
-    width: 48%;
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #fff;
-  }
-  
-  .btn-login {
-    background-color: #4CAF50; /* Verde para iniciar sesión */
-  }
-  
-  .btn-register {
-    background-color: #008CBA; /* Azul para registrarse */
-  }
-  
-  .btn-login:hover,
-  .btn-register:hover {
-    opacity: 0.9;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #333333;
+  background-color: #f0f0f0;
+  height: 100vh;
+}
+
+.login-logo {
+  width: 150px;
+  margin-bottom: 20px;
+}
+
+form {
+  background-color: #FFFFFF;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 350px;
+}
+
+.login-form-group {
+  margin-bottom: 15px;
+}
+
+.login-label {
+  display: block;
+  margin-bottom: 5px;
+  color: #333333;
+}
+
+.login-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #CCCCCC;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.login-button-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.login-button {
+  flex: 1;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.login-button-login {
+  background-color: #666666;
+  color: #FFFFFF;
+}
+
+.login-button-register {
+  background-color: #333333;
+  color: #FFFFFF;
+}
+
+.login-button:hover {
+  background-color: #CCCCCC;
+}
+
+.eye-icon {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #666666;
+  font-size: 18px;
+}
+
+.eye-icon:hover {
+  color: #333333;
+}
