@@ -15,7 +15,7 @@ const BarChart = ({ title, data, categories }) => {
                     },
                 }}
                 series={[{
-                    name: title,
+                    name: title, //Leyenda
                     data: data,
                 }]}
                 type="bar"

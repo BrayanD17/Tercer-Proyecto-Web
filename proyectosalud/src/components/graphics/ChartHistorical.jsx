@@ -49,7 +49,7 @@ const ChartHistorical = ({ data, tipo, title }) => {
             text: title,
             align: 'left',
         },
-        tooltip: {
+        tooltip: { //Para más de una serie
             shared: true,
             intersect: false,
         }
