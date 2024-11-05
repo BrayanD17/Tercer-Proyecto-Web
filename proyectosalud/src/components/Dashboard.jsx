@@ -1,12 +1,12 @@
 import React from "react";
 import "../styles/Dashboard.css"
-import Scorecard from "./Scorecard";
-import GlassChart from "./GlassChart";
-import StepsChart from "./StepChart";
-import BarChart from "./BarChart";
+import Scorecard from "./graphics/Scorecard";
+import GlassChart from "./graphics/GlassChart";
+import StepsChart from "./graphics/StepChart";
+import BarChart from "./graphics/BarChart";
 import ExerciseTable from "./Exercise";
-import BMIChart from "./IMCChart";
-import HeightChart from "./HeightChart";
+import IMCChart from "./graphics/IMCChart";
+import HeightChart from "./graphics/HeightChart";
 import DataHistory from "./DataHistorySection";
 
 const Dashboard =()=>{
@@ -49,10 +49,10 @@ const Dashboard =()=>{
                 </div>
                 <div className="derecha">
                     <div className="heights-container">
-                        <HeightChart altura={157} />
+                        <HeightChart altura={158} />
                     </div>  
                     <div className="IMC-conteiner">
-                        <BMIChart peso={45} altura={1.57} />
+                        <IMCChart peso={45} altura={1.58} />
                     </div>
                     <div className="water-consumption-container"> 
                         <GlassChart value={5} max={10}/>
