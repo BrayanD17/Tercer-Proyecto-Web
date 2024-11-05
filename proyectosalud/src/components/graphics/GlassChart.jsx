@@ -2,7 +2,7 @@ import React from "react";
 import Chart from 'react-apexcharts';
 
 const GlassChart = ({value, max }) => {
-    const valueInMl = value * 250; // Conversion from glasses to milliliters
+    const valueInMl = value * 250; // convertir a ml
 
     return (
         <div style={{ width: '100%', height: '100%' }}>
@@ -22,7 +22,7 @@ const GlassChart = ({value, max }) => {
                     dataLabels: {
                         enabled: true,
                         formatter: function (val) {
-                            return `${val} ml`; // Add 'ml' to the value
+                            return `${val} ml`; //valor en ml
                         },
                         style: {
                             fontSize: '14px',
@@ -33,7 +33,7 @@ const GlassChart = ({value, max }) => {
                         categories: ['Vasos de agua tomados'],
                     },
                     yaxis: {
-                        max: max * 250, // Adjust the max to be in milliliters
+                        max: max * 250, // max a ml
                     },
                     fill: {
                         colors: ['#00BFFF'],
