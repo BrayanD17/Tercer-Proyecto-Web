@@ -1,7 +1,6 @@
-/* Dashboard.css */
 .principal-container{
     background-color: #f4f4f4;
-     min-height: 100vh; /* Asegura que el contenedor ocupe al menos el 100% de la altura de la ventana */
+    min-height: 100vh; /* Asegura que el contenedor ocupe al menos el 100% de la altura de la ventana */
     padding: 20px;
 
 }
@@ -88,7 +87,44 @@
 @media (min-width: 576px) and (max-width: 768px) {}
 /* Mediano (tabletas en modo horizontal) */
 @media (min-width: 768px) and (max-width: 1024px) {}
-/* Grande (laptops pequeñas) */
-@media (min-width: 1025px) and (max-width: 1440px) {}
+/* Grande (laptops pequeñas) Mia al 100%*/
+@media (min-width: 1025px) and (max-width: 1440px) {
+}
 /* Extra grande (pantallas grandes) */
 @media (min-width: 1441px) {}
+
+/* Pantallas pequeñas, para presentar en clases*/
+@media (min-width: 1020px) {
+    .vista-general {
+        padding: 40px; /* Aumenta el padding para pantallas grandes */
+    }
+
+    .izquierda {
+        width: 70%; /* Aumenta el ancho de la columna izquierda */
+    }
+
+    .derecha {
+        width: 30%; /* Reduce el ancho de la columna derecha */
+        margin-left: 20px; /* Aumenta el margen izquierdo */
+    }
+
+    .weights-container, 
+    .body-pat-percentaje-container, 
+    .daily-step-container {
+        min-width: 250px; /* Aumenta el ancho mínimo en pantallas grandes */
+        max-height: 120px; /* Aumenta el alto máximo */
+    }
+
+    .body-composition-container,
+    .exercise-container {
+        max-width: 900px; /* Aumenta el ancho máximo para gráficas */
+        max-height: 700px; /* Aumenta el alto máximo */
+    }
+
+    .heights-container, 
+    .water-consumption-container, 
+    .IMC-conteiner {
+        min-height: 300px; /* Aumenta la altura mínima para contenedores */
+    }
+}
+
