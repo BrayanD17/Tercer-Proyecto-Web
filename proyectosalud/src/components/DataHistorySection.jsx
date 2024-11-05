@@ -1,13 +1,11 @@
-// DataHistory.jsx
 import React, { useState } from "react";
 import "../styles/DataHistorySection.css";
 import ChartHistorical from "./ChartHistorical";
 
 const DataHistory = () => {
     const [periodo, setPeriodo] = useState('1 semana');
-    const [tipoGrafico, setTipoGrafico] = useState('peso'); // Cambia a 'musculo', 'grasa', etc. según lo que necesites mostrar
+    const [tipoGrafico, setTipoGrafico] = useState('peso');
 
-    // Datos "quemados"
     const historicalDataStatic = {
         peso: [
           { date: "2024-10-01", value: 70 },
@@ -24,6 +22,11 @@ const DataHistory = () => {
           { date: "2024-07-05", value: 56},
           { date: "2024-07-02", value: 57 },
           { date: "2024-07-03", value: 58},
+          { date: "2024-07-01", value: 57 },
+          { date: "2024-07-03", value: 58},
+          { date: "2024-07-01", value: 57 },
+          { date: "2024-07-03", value: 58},
+          { date: "2024-07-01", value: 57 },
         ],
         musculo: [
           { date: "2024-10-01", value: 25 },
@@ -62,7 +65,7 @@ const DataHistory = () => {
           { date: "2024-10-07", value: 9000 },
         ],
         ejercicio: [
-          { date: "2024-10-01", value: 30 }, // minutos de ejercicio
+          { date: "2024-10-01", value: 30 },
           { date: "2024-10-02", value: 45 },
           { date: "2024-10-03", value: 60 },
           { date: "2024-10-04", value: 50 },
@@ -103,13 +106,11 @@ const DataHistory = () => {
                 </div>
             </div>
             <div className="historical-chart">
-                <div>
-
-                </div>
+                 {/*Verificar cual tipo de grafico es mejor usar (se debe modificar y ver como se van a mostrar el historico de agua y ejercicios)*/}
                 {historicalDataStatic[tipoGrafico] && (
                     <ChartHistorical 
                         data={historicalDataStatic[tipoGrafico]} 
-                        tipo={tipoGrafico === "peso" ? "bar" : tipoGrafico === "musculo" ? "bar" : "bar"} // Ajusta el tipo de gráfico
+                        tipo={tipoGrafico === "peso" ? "line" : tipoGrafico === "musculo" ? "area" :tipoGrafico === "grasa" ? "line": "bar"}
                         title={`Gráfico de ${tipoGrafico} durante ${periodo}`} 
                     />
                 )}

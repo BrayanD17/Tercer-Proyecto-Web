@@ -32,7 +32,7 @@
 }
 
 .select-period select, .select-graphic select {
-    width: 100%;
+    width: 80%;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -45,4 +45,8 @@
     border-color: #007bff;
     outline: none;
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.historical-chart{
+   height: 500px;
 }

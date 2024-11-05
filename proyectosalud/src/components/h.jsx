@@ -202,3 +202,54 @@ const StepsChart = ({ title, currentSteps, goalSteps }) => {
         </div>
     );
 };
+
+import React from "react";
+import Chart from 'react-apexcharts';
+
+const ChartHistorical = ({ data, tipo, title }) => {
+    // Configuración base del gráfico
+    const chartOptions = {
+        chart: {
+            type: tipo,
+        },
+        xaxis: tipo === 'bar' || tipo === 'line' || tipo === 'area' ? {
+            categories: data.map(item => item.date), // Solo para gráficos con eje X
+        } : undefined,
+        labels: tipo === 'pie' || tipo === 'donut' || tipo === 'radialBar' ? data.map(item => item.date) : [],
+        title: {
+            text: title,
+            align: 'left',
+        },
+        plotOptions: {
+            radialBar: {
+                dataLabels: {
+                    name: {
+                        show: true,
+                    },
+                    value: {
+                        show: true,
+                    },
+                },
+            },
+        },
+    };
+
+    // Configuración de los datos (series)
+    const seriesData = tipo === 'pie' || tipo === 'donut' || tipo === 'radialBar'
+        ? data.map(item => item.value) // Array plano de valores
+        : [{ name: title, data: data.map(item => item.value) }]; // Series con eje X
+
+    return (
+        <div style={{ width: '100%', height: '100%' }}>
+            <Chart
+                options={chartOptions}
+                series={seriesData}
+                type={tipo}
+                height="100%"
+                width="100%"
+            />
+        </div>
+    );
+};
+
+
