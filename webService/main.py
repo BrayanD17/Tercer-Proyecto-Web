@@ -3,7 +3,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_engine, Column, Integer, Float, String, Date, DECIMAL, ForeignKey, Enum
+from sqlalchemy import create_engine, Column, Integer, Float, String, Date, DECIMAL, ForeignKey, Enum,DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 import datetime
@@ -18,15 +18,45 @@ app = FastAPI()
 # Configura CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Permite solicitudes desde este origen
+    allow_origins=["http://localhost:3000"],  
     allow_credentials=True,
-    allow_methods=["*"],  # Permite cualquier método (GET, POST, etc.)
-    allow_headers=["*"],  # Permite cualquier encabezado
+    allow_methods=["*"],  
+    allow_headers=["*"],  
 )
 # Configuración de SQLite
 DATABASE_URL = "sqlite:///./fitness_app.db"
 engine = create_engine(DATABASE_URL)
 Base = declarative_base()
+
+# Configurar la sesión con la base de datos
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Crear una instancia de CryptContext para el manejo de contraseñas
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Función para obtener la sesión de la base de datos
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# Configuración del token
+SECRET_KEY = "your_secret_key"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+
+def create_access_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
 
 # Modelo de la base de datos
 class User(Base):
@@ -35,10 +65,10 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     username = Column(String, unique=True, index=True, nullable=False)
     password = Column(String, nullable=False)
-    birthday = Column(Date, nullable=False)
+    birthday = Column(DateTime, nullable=False)
     gender = Column(Enum('Masculino', 'Femenino'), nullable=False)
-    current_weight = Column(Float, nullable=False)  # Peso actual en kg
-    current_height = Column(Float, nullable=False)  # Altura actual en cm
+    current_weight = Column(Float, nullable=False)  
+    current_height = Column(Float, nullable=False)  
 
     # Relaciones con las otras tablas (las mantenemos igual)
     weights = relationship("Weight", back_populates="user")
@@ -49,16 +79,76 @@ class User(Base):
     daily_steps = relationship("DailySteps", back_populates="user")
     exercises = relationship("Exercise", back_populates="user")
 
-# Modelo de solicitud para registro con validaciones específicas
+class Weight(Base):
+    __tablename__ = "weights"
+    date = Column(Date, primary_key=True, default=datetime.date.today)
+    userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    weight = Column(DECIMAL(5, 2))
+    user = relationship("User", back_populates="weights")
+
+class Height(Base):
+    __tablename__ = "heights"
+    date = Column(Date, primary_key=True, default=datetime.date.today)
+    userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    height = Column(DECIMAL(5, 2))
+    user = relationship("User", back_populates="heights")
+
+class BodyFatPercentage(Base):
+    __tablename__ = "body_fat_percentages"
+    date = Column(Date, primary_key=True, default=datetime.date.today)
+    userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    fat_percentage = Column(DECIMAL(5, 2))
+    user = relationship("User", back_populates="body_fat_percentages")
+
+class BodyComposition(Base):
+    __tablename__ = "body_compositions"
+    date = Column(Date, primary_key=True, default=datetime.date.today)
+    userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    fat = Column(DECIMAL(5, 2))
+    muscle = Column(DECIMAL(5, 2))
+    water = Column(DECIMAL(5, 2))
+    user = relationship("User", back_populates="body_compositions")
+
+class WaterConsumption(Base):
+    __tablename__ = "water_consumptions"
+    date = Column(Date, primary_key=True, default=datetime.date.today)
+    userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    water_amount = Column(DECIMAL(5, 2))
+    user = relationship("User", back_populates="water_consumptions")
+
+class DailySteps(Base):
+    __tablename__ = "daily_steps"
+    date = Column(Date, primary_key=True, default=datetime.date.today)
+    userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    steps_amount = Column(Integer)
+    user = relationship("User", back_populates="daily_steps")
+
+class Exercise(Base):
+    __tablename__ = "exercises"
+    date = Column(Date, primary_key=True, default=datetime.date.today)
+    userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    exercise_name = Column(String)
+    duration = Column(Integer)
+    user = relationship("User", back_populates="exercises")
+
+# Crear las tablas
+Base.metadata.create_all(bind=engine)
+
+# Modelo de solicitud
 class RegisterUserRequest(BaseModel):
     email: str
     username: str
     password: str
-    birthday: datetime.date
+    birthday: datetime.datetime
     gender: str
     current_weight: float
     current_height: float
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+# Endpoints
 @app.post("/register/")
 async def register_user(user: RegisterUserRequest, db: Session = Depends(get_db)):
     # Cifrar la contraseña
@@ -81,25 +171,6 @@ async def register_user(user: RegisterUserRequest, db: Session = Depends(get_db)
         db.rollback()
         raise HTTPException(status_code=400, detail="El correo electrónico o nombre de usuario ya está registrado")
 
-# Configuración del token
-SECRET_KEY = "your_secret_key"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-
-def create_access_token(data: dict, expires_delta: timedelta = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
 @app.post("/login/")
 async def login(user: LoginRequest, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user.email).first()
@@ -112,93 +183,6 @@ async def login(user: LoginRequest, db: Session = Depends(get_db)):
 @app.post("/logout/")
 async def logout():
     return {"message": "Sesión cerrada con éxito"}
-
-class Weight(Base):
-    __tablename__ = "weights"
-    date = Column(Date, primary_key=True, default=datetime.date.today)
-    userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
-    weight = Column(DECIMAL(5, 2))
-    
-    # Relación con usuario
-    user = relationship("User", back_populates="weights")
-
-class Height(Base):
-    __tablename__ = "heights"
-    date = Column(Date, primary_key=True, default=datetime.date.today)
-    userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
-    height = Column(DECIMAL(5, 2))
-    
-    # Relación con usuario
-    user = relationship("User", back_populates="heights")
-
-
-class BodyFatPercentage(Base):
-    __tablename__ = "body_fat_percentages"
-    date = Column(Date, primary_key=True, default=datetime.date.today)
-    userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
-    fat_percentage = Column(DECIMAL(5, 2))
-    
-    # Relación con usuario
-    user = relationship("User", back_populates="body_fat_percentages")
-
-
-class BodyComposition(Base):
-    __tablename__ = "body_compositions"
-    date = Column(Date, primary_key=True, default=datetime.date.today)
-    userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
-    fat = Column(DECIMAL(5, 2))
-    muscle = Column(DECIMAL(5, 2))
-    water = Column(DECIMAL(5, 2))
-
-    # Relación con usuario
-    user = relationship("User", back_populates="body_compositions")
-
-
-class WaterConsumption(Base):
-    __tablename__ = "water_consumptions"
-    date = Column(Date, primary_key=True, default=datetime.date.today)
-    userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
-    water_amount = Column(DECIMAL(5, 2))
-
-    # Relación con usuario
-    user = relationship("User", back_populates="water_consumptions")
-
-
-class DailySteps(Base):
-    __tablename__ = "daily_steps"
-    date = Column(Date, primary_key=True, default=datetime.date.today)
-    userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
-    steps_amount = Column(Integer)
-
-    # Relación con usuario
-    user = relationship("User", back_populates="daily_steps")
-
-
-class Exercise(Base):
-    __tablename__ = "exercises"
-    date = Column(Date, primary_key=True, default=datetime.date.today)
-    userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
-    exercise_name = Column(String)
-    duration = Column(Integer)  # Duración en minutos
-
-    # Relación con usuario
-    user = relationship("User", back_populates="exercises")
-
-
-# Crear las tablas
-Base.metadata.create_all(bind=engine)
-
-# Configurar la sesión con la base de datos
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Obtener la base de datos
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 
 # Servicio para importar datos de sensores
 @app.post("/importar_sensores/")
@@ -281,6 +265,21 @@ async def importar_sensores(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=f"Error al importar datos: {e}")
+
+# Configuración del token
+SECRET_KEY = "your_secret_key"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+def create_access_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
 
 # Función para actualizar o insertar un registro si existe o no
 def actualizar_o_insertar(db: Session, modelo, nuevo_registro):
