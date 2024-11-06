@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import NavigationBar from './components/NavigationBar';
 import UserProfile from './components/UserProfile'; // Importa el componente UserProfile
-import Dashboard from './components/Dashboard';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 function App() {
@@ -20,7 +19,6 @@ function App() {
     <Router>
       <div className="App">
         <NavigationBar onImportData={handleDataImport} onUserProfileClick={handleUserProfileClick} />
-        <Dashboard></Dashboard>
         <Routes>
           <Route path="/perfil" element={<UserProfile />} />
           {/* Define aquí otras rutas si es necesario */}
