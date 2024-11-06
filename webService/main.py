@@ -145,12 +145,14 @@ class RegisterUserRequest(BaseModel):
     current_height: float
 
 class LoginRequest(BaseModel):
-    email: str
+    username: str
     password: str
 
 # Endpoints
 @app.post("/register/")
 async def register_user(user: RegisterUserRequest, db: Session = Depends(get_db)):
+    print("Datos recibidos para registro:", user.dict())  # Verifica los datos recibidos
+    
     # Cifrar la contraseña
     hashed_password = pwd_context.hash(user.password)
     new_user = User(
@@ -159,25 +161,29 @@ async def register_user(user: RegisterUserRequest, db: Session = Depends(get_db)
         password=hashed_password,
         birthday=user.birthday,
         gender=user.gender,
-        current_weight=user.current_weight,  
-        current_height=user.current_height   
+        current_weight=user.current_weight,
+        current_height=user.current_height
     )
     try:
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
+        print("Usuario registrado exitosamente:", new_user.id)
         return {"message": "Usuario registrado con éxito"}
-    except IntegrityError:
+    except IntegrityError as e:
         db.rollback()
+        print("Error en registro:", e)  # Imprime el error específico
         raise HTTPException(status_code=400, detail="El correo electrónico o nombre de usuario ya está registrado")
+
 
 @app.post("/login/")
 async def login(user: LoginRequest, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user.email).first()
+    db_user = db.query(User).filter(User.username == user.username).first()
+    print("Datos de inicio de sesión:", user.username, user.password)
     if db_user is None or not pwd_context.verify(user.password, db_user.password):
         raise HTTPException(status_code=400, detail="Credenciales incorrectas")
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": db_user.email}, expires_delta=access_token_expires)
+    access_token = create_access_token(data={"sub": db_user.username}, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.post("/logout/")

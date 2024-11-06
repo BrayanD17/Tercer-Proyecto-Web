@@ -16,12 +16,12 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await fetch("http://localhost:8000/login/", {
+      const response = await fetch("http://127.0.0.1:8000/login/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email: username, password }), // Asegúrate de usar "email" si el backend lo espera
+        body: JSON.stringify({ username, password }), // Cambiar "email" a "username"
       });
       const data = await response.json();
       if (response.ok) {
@@ -36,22 +36,28 @@ export const AuthProvider = ({ children }) => {
       return false;
     }
   };
+  
 
   const register = async (userData) => {
     try {
-      const response = await fetch("http://localhost:8000/register/", {
+      const response = await fetch("http://127.0.0.1:8000/register/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(userData),
       });
+  
+      const data = await response.json();
+      console.log(data); // Verifica la respuesta del servidor para posibles errores
+  
       return response.ok;
     } catch (error) {
       console.error("Error en el registro:", error);
       return false;
     }
   };
+  
 
   const logout = () => {
     setToken(null);
