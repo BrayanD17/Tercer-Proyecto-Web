@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Background from './Background';
 import ImportDataForm from './ImportDataForm';
-import '../styles/NavigationBar.css';
+import '../../styles/NavigationBar.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Importa FontAwesomeIcon
 import { faArrowUpFromBracket, faCircleUser } from '@fortawesome/free-solid-svg-icons'; // Importa los íconos
 

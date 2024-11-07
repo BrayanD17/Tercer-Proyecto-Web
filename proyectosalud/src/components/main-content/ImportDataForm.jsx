@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
-import '../styles/ImportDataForm.css';
+import '../../styles/ImportDataForm.css';
 
 const ImportDataForm = ({ onCancel }) => {
   const [tipoDato, setTipoDato] = useState('');
