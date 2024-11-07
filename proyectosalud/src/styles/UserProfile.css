@@ -1,0 +1,42 @@
+.user-profile {
+    position: absolute;
+    top: 60px; /* Ajusta según el tamaño de tu barra de navegación */
+    right: 10px;
+    background-color: #ffffff;
+    color: #333333;
+    width: 250px;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+  }
+  
+  .user-profile h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #1565C0; /* Color principal para resaltar el título */
+  }
+  
+  .user-profile p {
+    font-size: 16px;
+    margin: 5px 0;
+    color: #333333;
+  }
+  
+  /* Ajuste para pantallas móviles */
+  @media (max-width: 425px) {
+    .user-profile {
+      width: 90%;
+      right: 5%;
+      top: 70px;
+    }
+  
+    .user-profile h2 {
+      font-size: 18px;
+    }
+  
+    .user-profile p {
+      font-size: 14px;
+    }
+  }
+  
