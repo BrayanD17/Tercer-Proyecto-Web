@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
-import NavigationBar from './components/NavigationBar';
-import UserProfile from './components/UserProfile'; // Importa el componente UserProfile
+import NavigationBar from "./components/main-content/NavigationBar";
+import UserProfile from './components/main-content/UserProfile'; // Importa el componente UserProfile
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 function App() {
