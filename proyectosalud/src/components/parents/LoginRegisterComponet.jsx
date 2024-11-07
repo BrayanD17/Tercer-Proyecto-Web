@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import Login from './Login';
-import Register from './Register';
-import MainComponent from '../main-content/MainComponent';
+import Login from '../login-register/Login';
+import Register from '../login-register/Register';
+import ClientView from './ClientView';
 
 const LoginRegisterComponent = () => {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -20,11 +20,11 @@ const LoginRegisterComponent = () => {
   };
 
   const handleCancel = () => {
-    setIsRegistering(false); // Cambia a Login al hacer clic en Cancelar
+    setIsRegistering(false); 
   };
 
   if (isLoggedIn) {
-    return <MainComponent />;
+    return <ClientView />;
   }
 
   return (

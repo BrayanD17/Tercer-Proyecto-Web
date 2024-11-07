@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import "../styles/DataHistorySection.css";
-import ChartHistorical from "./graphics/ChartHistorical";
+import "../../styles/DataHistorySection.css";
+import ChartHistorical from "../graphics/ChartHistorical";
 
 const DataHistory = () => {
     const [periodo, setPeriodo] = useState('1 semana');
