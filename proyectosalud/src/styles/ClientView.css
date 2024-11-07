@@ -1,0 +1,25 @@
+.client-view {
+  position: relative;
+  height: 100vh;
+  overflow-y: auto; /* Permite scroll solo en el eje vertical */
+  overflow-x: hidden; /* Bloquea el scroll en el eje horizontal */
+  width: 100vw;
+  box-sizing: border-box;
+}
+
+.view-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.view-container.hide {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.view-container.show {
+  opacity: 1;
+  transform: translateX(0);
+}

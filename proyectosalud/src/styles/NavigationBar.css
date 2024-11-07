@@ -8,36 +8,15 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.title {
-  font-size: 26px;
-  font-weight: 700;
-  color: #FFFFFF;
-  margin-right: auto;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* Estilo del icono de importación */
-.import-data-icon {
-  font-size: 28px;
-  color: white;
-  cursor: pointer;
-  margin-right: 25px;
-  transition: transform 0.3s ease, color 0.3s ease;
-}
-
-.import-data-icon:hover {
-  color: #64DD17;
-  transform: scale(1.2);
+/* Menú de usuario a la izquierda */
+.user-profile-container {
+  display: flex;
+  align-items: center;
 }
 
 /* Estilo del icono de perfil de usuario */
-.user-profile-container {
-  position: relative;
-}
-
 .user-icon {
-  font-size: 40px;
+  font-size: 24px;
   cursor: pointer;
   transition: transform 0.3s ease, color 0.3s ease;
 }
@@ -47,35 +26,30 @@
   transform: scale(1.2);
 }
 
-/* Estilos para el menú desplegable del perfil de usuario */
-.user-profile {
-  position: absolute;
-  top: 60px; /* Ajusta según el tamaño de la barra de navegación */
-  right: 0;
-  background-color: #ffffff;
-  color: #333333;
-  width: 250px;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
+/* Icono de importación a la derecha */
+.import-data-icon {
+  font-size: 24px;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.import-data-icon:hover {
+  color: #64DD17;
+  transform: scale(1.2);
 }
 
 /* Ajuste para pantallas móviles */
 @media (max-width: 425px) {
   .navbar {
     padding: 10px;
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: space-between;
   }
 
-  .title {
-    font-size: 22px;
-    margin-bottom: 10px;
-  }
-
-  .import-data-icon,
-  .user-icon {
-    font-size: 32px;
+  .user-icon,
+  .import-data-icon {
+    font-size: 20px;
     margin-right: 10px;
   }
 }

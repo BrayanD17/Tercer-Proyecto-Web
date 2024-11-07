@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import Background from './Background';
 import ImportDataForm from './ImportDataForm';
-import UserProfile from './UserProfile'; // Importar UserProfile
+import UserProfile from '../profile/UserProfile';
 import '../../styles/NavigationBar.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; 
-import { faArrowUpFromBracket, faCircleUser } from '@fortawesome/free-solid-svg-icons';
+import { faArrowUpFromBracket, faBars } from '@fortawesome/free-solid-svg-icons';
 
-const NavigationBar = ({ onImportData, onUserProfileClick }) => {
+const NavigationBar = ({ onImportData, onDashboard, onViewProfile, onEditProfile }) => {
   const [isFormVisible, setIsFormVisible] = useState(false);
-  const [isUserProfileVisible, setIsUserProfileVisible] = useState(false); // Estado para mostrar UserProfile
+  const [isUserProfileVisible, setIsUserProfileVisible] = useState(false);
   const [message, setMessage] = useState('');
 
   const handleImportClick = () => {
@@ -32,30 +32,30 @@ const NavigationBar = ({ onImportData, onUserProfileClick }) => {
   };
 
   return (
-    <>
+    <div className={`app-container ${isUserProfileVisible ? 'shift-left' : ''}`}>
       <nav className="navbar">
-        <h1 className="title">HealthSync</h1>
-
+        <div className="user-profile-container">
+          <FontAwesomeIcon
+            icon={faBars}
+            className="user-icon"
+            style={{ color: '#ffffff', fontSize: '24px', cursor: 'pointer' }}
+            onClick={toggleUserProfile}
+            title="Menú de usuario"
+          />
+        </div>
         <div className="import-data-icon" onClick={handleImportClick} title="Importar datos de sensores">
           <FontAwesomeIcon icon={faArrowUpFromBracket} style={{ color: '#ffffff', fontSize: '24px' }} />
         </div>
-
-        {/* Icono de usuario */}
-        <div className="user-profile-container">
-          <FontAwesomeIcon
-            icon={faCircleUser}
-            className="user-icon"
-            style={{ color: '#ffffff', fontSize: '40px', cursor: 'pointer' }}
-            onClick={toggleUserProfile}
-            title="Perfil de usuario"
-          />
-          {isUserProfileVisible && (
-            <div className="user-profile">
-              <UserProfile />
-            </div>
-          )}
-        </div>
       </nav>
+
+      {isUserProfileVisible && (
+        <UserProfile 
+          onClose={toggleUserProfile} 
+          onDashboard={onDashboard} 
+          onViewProfile={onViewProfile} 
+          onEditProfile={onEditProfile}
+        />
+      )}
 
       {isFormVisible && (
         <Background>
@@ -67,7 +67,7 @@ const NavigationBar = ({ onImportData, onUserProfileClick }) => {
       )}
 
       {message && <p>{message}</p>}
-    </>
+    </div>
   );
 };
 
