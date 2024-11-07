@@ -12,7 +12,7 @@ const Register = ({ onSubmit, onCancel }) => {
     email: '',
     username: '',
     password: '',
-    confirmPassword: '', 
+    confirmPassword: '',
     current_weight: '',
     current_height: '',
     birthday: '',
@@ -20,6 +20,8 @@ const Register = ({ onSubmit, onCancel }) => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [emailError, setEmailError] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -28,12 +30,54 @@ const Register = ({ onSubmit, onCancel }) => {
     });
   };
 
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return "Ingrese un correo electrónico válido.";
+    }
+    return "";
+  };
+
+  const validatePassword = (password) => {
+    const minLength = password.length >= 10;
+    const hasLetter = /[a-zA-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (!minLength) return "Incluir al menos 10 caracteres.";
+    if (!hasLetter) return "Incluir al menos una letra.";
+    if (!hasNumber) return "Incluir al menos un número.";
+    if (!hasSymbol) return "Incluir al menos un símbolo.";
+
+    return "";
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validar formulario completo
     const isFormComplete = Object.values(formData).every((value) => value !== '');
     if (!isFormComplete) {
       toast.error('Por favor, completa todos los campos antes de registrar.');
       return;
+    }
+
+    // Validar correo electrónico
+    const emailValidationMessage = validateEmail(formData.email);
+    if (emailValidationMessage) {
+      setEmailError(emailValidationMessage);
+      return;
+    } else {
+      setEmailError('');
+    }
+
+    // Validar contraseña
+    const passwordValidationMessage = validatePassword(formData.password);
+    if (passwordValidationMessage) {
+      setPasswordError(passwordValidationMessage);
+      return;
+    } else {
+      setPasswordError('');
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -45,13 +89,13 @@ const Register = ({ onSubmit, onCancel }) => {
     const currentWeight = parseFloat(formData.current_weight);
     const currentHeight = parseFloat(formData.current_height);
 
-    if (currentWeight < 0 || currentHeight < 0) {
-      toast.error('Peso y altura no pueden ser valores negativos. Se ajustarán a 0.');
-      setFormData({
-        ...formData,
-        current_weight: currentWeight < 0 ? 0 : formData.current_weight,
-        current_height: currentHeight < 0 ? 0 : formData.current_height
-      });
+    if (isNaN(currentWeight) || currentWeight <= 0) {
+      toast.error('El peso debe ser un valor positivo en kg.');
+      return;
+    }
+
+    if (isNaN(currentHeight) || currentHeight <= 0) {
+      toast.error('La altura debe ser un valor positivo en cm.');
       return;
     }
 
@@ -95,7 +139,18 @@ const Register = ({ onSubmit, onCancel }) => {
           <div className='column-inputs'>
             <div className='email-container'>
               <label className='email-label' htmlFor="email">Correo:</label>
-              <input className='email-input' type="email" id="email" name="email" onChange={handleChange} required />
+              <input 
+                className='email-input' 
+                type="email" 
+                id="email" 
+                name="email" 
+                onChange={(e) => {
+                  handleChange(e);
+                  setEmailError(validateEmail(e.target.value));
+                }} 
+                required 
+              />
+              {emailError && <span className="error-message">{emailError}</span>}
             </div>
             <div className='username-container'>
               <label className='username-label' htmlFor="username">Usuario:</label>
@@ -104,22 +159,28 @@ const Register = ({ onSubmit, onCancel }) => {
             <div className='password-container'>
               <label className='password-label' htmlFor="password">Contraseña:</label>
               <div className='input-wrapper'>
-                <input className='password-input'
+                <input 
+                  className='password-input'
                   type={showPassword ? "text" : "password"}
                   id="password"
                   name="password"
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    handleChange(e);
+                    setPasswordError(validatePassword(e.target.value));
+                  }}
                   required
                 />
                 <span className="eye-icon" onClick={togglePasswordVisibility}>
                   {showPassword ? <EyeOff /> : <Eye />}
                 </span>
               </div>
+              {passwordError && <span className="error-message">{passwordError}</span>}
             </div>
             <div className='password-container'>
               <label className='password-label' htmlFor="confirmPassword">Confirmar Contraseña:</label>
               <div className='input-wrapper'>
-                <input className='password-input'
+                <input 
+                  className='password-input'
                   type={showConfirmPassword ? "text" : "password"}
                   id="confirmPassword"
                   name="confirmPassword"
@@ -146,11 +207,11 @@ const Register = ({ onSubmit, onCancel }) => {
             </div>
             <div className='current-weight-container'>
               <label className='current-weight-label' htmlFor="current_weight">Peso actual (kg):</label>
-              <input className='current-weight-input' type="text" id="current_weight" name="current_weight" onChange={handleChange} required />
+              <input className='current-weight-input' type="number" step="0.1" id="current_weight" name="current_weight" onChange={handleChange} required />
             </div>
             <div className='current-height-container'>
-              <label className='current-height-label' htmlFor="current_height">Altura actual (m):</label>
-              <input className='current-height-input' type="text" id="current_height" name="current_height" onChange={handleChange} required /> 
+              <label className='current-height-label' htmlFor="current_height">Altura actual (cm):</label>
+              <input className='current-height-input' type="number" step="0.1" id="current_height" name="current_height" onChange={handleChange} required /> 
             </div>
           </div>
         </div>
