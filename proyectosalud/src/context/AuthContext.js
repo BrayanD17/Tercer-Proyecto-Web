@@ -93,20 +93,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const updateUserProfile = async (username, updatedData) => {
+  const updateUserField = async (username, field, value) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/user/${username}`, {
+      const response = await fetch(`http://127.0.0.1:8000/user/${username}/update-field`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(updatedData),
+        body: JSON.stringify({ [field]: value }),
       });
+      const data = await response.json();
       if (response.ok) {
+        if (field === "username") {
+          setUsername(value);
+          localStorage.setItem("username", value);
+        }
         return true;
       } else {
-        throw new Error("Error al actualizar el perfil del usuario");
+        throw new Error(data.detail || "Error al actualizar el campo");
       }
     } catch (error) {
       console.error(error);
@@ -135,11 +140,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setToken(null);
-    setUsername(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem("username");
+  const logoutUser = async () => {
+    try {
+      await fetch("http://127.0.0.1:8000/logout/", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (error) {
+      console.error("Error en el cierre de sesión:", error);
+    } finally {
+      setToken(null);
+      setUsername(null);
+      localStorage.removeItem("token");
+      localStorage.removeItem("username");
+    }
   };
 
   return (
@@ -149,10 +165,10 @@ export const AuthProvider = ({ children }) => {
       login, 
       register, 
       getUsernames, 
-      getUserProfile, 
-      updateUserProfile, 
+      getUserProfile,  
+      updateUserField,
       changePassword, 
-      logout 
+      logout :logoutUser
     }}>
       {children}
     </AuthContext.Provider>

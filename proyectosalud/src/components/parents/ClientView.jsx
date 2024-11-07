@@ -6,9 +6,15 @@ import EditProfile from '../profile/EditProfile';
 import { AuthContext } from '../../context/AuthContext';
 import '../../styles/ClientView.css';
 
-const ClientView = ({ username }) => {
+const ClientView = ({ username, onLogout }) => {
   const [currentView, setCurrentView] = useState('dashboard');
+  const [profileUpdated, setProfileUpdated] = useState(false);
   const { logout } = useContext(AuthContext);
+
+  const handleEditComplete = () => {
+    setProfileUpdated(!profileUpdated); 
+    setCurrentView('profile'); 
+  };
 
   const handleImportData = (tipoDato, mensaje) => {
     console.log(`Datos importados: ${tipoDato} - ${mensaje}`);
@@ -16,6 +22,7 @@ const ClientView = ({ username }) => {
 
   const handleViewProfile = () => {
     setCurrentView('profile');
+    setProfileUpdated(false);
   };
 
   const handleEditProfile = () => {
@@ -28,7 +35,7 @@ const ClientView = ({ username }) => {
 
   const handleLogout = () => {
     logout();
-    setCurrentView('dashboard'); 
+    onLogout(); 
   };
 
   return (
@@ -44,10 +51,10 @@ const ClientView = ({ username }) => {
         <Dashboard />
       </div>
       <div className={`view-container ${currentView === 'profile' ? 'show' : 'hide'}`}>
-        <ViewProfile username={username} />
+        <ViewProfile username={username} profileUpdated={profileUpdated} />
       </div>
       <div className={`view-container ${currentView === 'editProfile' ? 'show' : 'hide'}`}>
-        <EditProfile username={username} onLogout={handleLogout} onEditComplete={handleDashboard} />
+        <EditProfile username={username} onLogout={handleLogout} onEditComplete={handleEditComplete} />
       </div>
     </div>
   );

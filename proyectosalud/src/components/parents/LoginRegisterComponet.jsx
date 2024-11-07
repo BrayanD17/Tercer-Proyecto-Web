@@ -25,8 +25,12 @@ const LoginRegisterComponent = () => {
     setIsRegistering(false); 
   };
 
+  const handleLogout = () => {
+    setIsLoggedIn(false); 
+  };
+  
   if (isLoggedIn) {
-    return <ClientView username={username} />;
+    return <ClientView username={username} onLogout={handleLogout} />;
   }
 
   return (

@@ -3,9 +3,13 @@ import '../../styles/ViewProfile.css';
 import LogoHealthSync from '../../images/logoHealthSync.png';
 import { AuthContext } from '../../context/AuthContext';
 
-const ViewProfile = ({ username }) => {
+const ViewProfile = ({ username, profileUpdated }) => {
   const { getUserProfile } = useContext(AuthContext);
   const [profile, setProfile] = useState(null);
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toISOString().slice(0, 19).replace("T", " ");
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -13,7 +17,7 @@ const ViewProfile = ({ username }) => {
       setProfile(userData);
     };
     fetchProfile();
-  }, [username, getUserProfile]);
+  }, [username, profileUpdated, getUserProfile]);
 
   if (!profile) {
     return <div className="loading">Cargando perfil...</div>;
@@ -44,7 +48,7 @@ const ViewProfile = ({ username }) => {
         </div>
         <div className="profile-item">
           <span className="profile-label">Fecha de nacimiento:</span>
-          <span className="profile-value">{new Date(profile.birthday).toLocaleDateString()}</span>
+          <span className="profile-value">{formatDate(profile.birthday)}</span>
         </div>
         <div className="profile-item">
           <span className="profile-label">Género:</span>

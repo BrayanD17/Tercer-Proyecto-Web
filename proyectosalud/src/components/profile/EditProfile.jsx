@@ -3,47 +3,84 @@ import '../../styles/EditProfile.css';
 import { AuthContext } from '../../context/AuthContext';
 import { Pencil } from 'lucide-react';
 import LogoHealthSync from '../../images/logoHealthSync.png';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const EditProfile = ({ username, onLogout, onEditComplete }) => {
-  const { getUserProfile, updateUserProfile, getUsernames, logout } = useContext(AuthContext);
+  const { getUserProfile, updateUserField, getUsernames, logout } = useContext(AuthContext);
   const [userData, setUserData] = useState(null);
   const [editableField, setEditableField] = useState(null);
   const [newUsername, setNewUsername] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [usernames, setUsernames] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
       const data = await getUserProfile(username);
       setUserData(data);
     };
+    const fetchUsernames = async () => {
+      const usernamesList = await getUsernames();
+      setUsernames(usernamesList);
+    };
     fetchUserData();
-  }, [getUserProfile, username]);
+    fetchUsernames();
+  }, [getUserProfile, getUsernames, username]);
 
   const handleEditClick = (field) => {
-    setEditableField(field);
-    setErrorMessage('');
+    if (editableField === field) {
+      setEditableField(null);
+      setErrorMessage('');
+    } else {
+      setEditableField(field);
+      setErrorMessage('');
+    }
   };
 
   const handleSaveClick = async (field) => {
+    let updatedValue = userData[field];
+    
     if (field === 'username' && newUsername !== userData.username) {
-      const usernames = await getUsernames();
       if (usernames.includes(newUsername)) {
         setErrorMessage('El nombre de usuario ya está en uso');
         return;
       }
-      setUserData((prevData) => ({ ...prevData, username: newUsername }));
-      await updateUserProfile(username, { username: newUsername });
-      await logout();
-      onLogout();
-      return; 
+      updatedValue = newUsername;
     }
-
-    await updateUserProfile(username, { [field]: userData[field] });
-    setEditableField(null);
-    onEditComplete();
+  
+    if (field === 'birthday') {
+      updatedValue = `${userData.birthday} 00:00:00`;
+    }
+  
+    const success = await updateUserField(username, field, updatedValue);
+  
+    if (success) {
+      toast.success(`${field} actualizado exitosamente`);
+      if (field === 'username') {
+        await logout();
+        onLogout(); 
+      } else {
+        setEditableField(null);
+        onEditComplete();
+      }
+    } else {
+      toast.error(`Error al actualizar ${field}`);
+    }
   };
-
+    
   const handleChange = (field, value) => {
+    if (field === 'email') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value)) {
+        setErrorMessage('Ingrese un correo electrónico válido');
+        return;
+      }
+    }
+    if ((field === 'current_weight' || field === 'current_height') && value <= 0) {
+      toast.error(`${field === 'current_weight' ? 'Peso' : 'Altura'} debe ser un valor positivo.`);
+      return;
+    }
+    setErrorMessage('');
     setUserData((prevData) => ({ ...prevData, [field]: value }));
   };
 
@@ -51,6 +88,7 @@ const EditProfile = ({ username, onLogout, onEditComplete }) => {
 
   return (
     <div className="edit-profile">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <div className="header">
         <img src={LogoHealthSync} alt="Logo" className="logo" />
         <h2>Editar Perfil</h2>
@@ -72,6 +110,7 @@ const EditProfile = ({ username, onLogout, onEditComplete }) => {
           {editableField === 'email' && (
             <button onClick={() => handleSaveClick('email')}>Guardar</button>
           )}
+          {errorMessage && <p className="error">{errorMessage}</p>}
         </div>
 
         <div className="field">
@@ -97,8 +136,9 @@ const EditProfile = ({ username, onLogout, onEditComplete }) => {
           {editableField === 'current_weight' ? (
             <input
               type="number"
+              step="0.1"
               value={userData.current_weight}
-              onChange={(e) => handleChange('current_weight', e.target.value)}
+              onChange={(e) => handleChange('current_weight', parseFloat(e.target.value))}
             />
           ) : (
             <span>{userData.current_weight} kg</span>
@@ -114,8 +154,9 @@ const EditProfile = ({ username, onLogout, onEditComplete }) => {
           {editableField === 'current_height' ? (
             <input
               type="number"
+              step="0.1"
               value={userData.current_height}
-              onChange={(e) => handleChange('current_height', e.target.value)}
+              onChange={(e) => handleChange('current_height', parseFloat(e.target.value))}
             />
           ) : (
             <span>{userData.current_height} cm</span>
@@ -130,7 +171,7 @@ const EditProfile = ({ username, onLogout, onEditComplete }) => {
           <label>Fecha de nacimiento:</label>
           {editableField === 'birthday' ? (
             <input
-              type="date"
+              type="datetime-local"
               value={userData.birthday}
               onChange={(e) => handleChange('birthday', e.target.value)}
             />

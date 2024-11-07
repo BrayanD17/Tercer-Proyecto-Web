@@ -8,14 +8,14 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 import datetime
 import csv
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict, EmailStr, validator
 from sqlalchemy.exc import IntegrityError
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import timedelta
-from typing import List
+from typing import Optional
 from fastapi import Path, Query
-
+from typing import Optional, List
 
 app = FastAPI()
 # Configura CORS
@@ -160,12 +160,28 @@ class UserProfileResponse(BaseModel):
     current_height: float
 
 class UserProfileUpdateRequest(BaseModel):
-    email: str = None
-    username: str = None
-    birthday: datetime.datetime = None
-    gender: str = None
-    current_weight: float = None
-    current_height: float = None
+    email: str | None = None
+    username: str | None = None
+    birthday: datetime.datetime | None = None
+    gender: str | None = None
+    current_weight: float | None = None
+    current_height: float | None = None
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+class UserUpdateRequest(BaseModel):
+    email: Optional[EmailStr] = None
+    username: Optional[str] = None
+    birthday: Optional[datetime.datetime] = None  # Específico como datetime.datetime
+    gender: Optional[str] = None
+    current_weight: Optional[float] = None
+    current_height: Optional[float] = None
+
+    @validator("current_weight", "current_height")
+    def validate_positive(cls, value):
+        if value is not None and value <= 0:
+            raise ValueError("Los valores de peso y altura deben ser positivos.")
+        return value
 
 class PasswordChangeRequest(BaseModel):
     current_password: str
@@ -219,37 +235,44 @@ async def get_user_profile(username: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return user
 
-@app.post("/user/{username}/update")
-async def update_user_profile(
+@app.post("/user/{username}/update-field")
+async def update_user_field(
     username: str,
-    profile_data: UserProfileUpdateRequest,
+    update_data: UserUpdateRequest,
     db: Session = Depends(get_db)
 ):
+    # Buscar el usuario en la base de datos
     user = db.query(User).filter(User.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-    # Modificar solo los campos que se proporcionen en la solicitud
-    if profile_data.email is not None:
-        user.email = profile_data.email
-    if profile_data.username is not None:
-        # Verificar si el nuevo nombre de usuario ya existe en otro usuario
-        if db.query(User).filter(User.username == profile_data.username).first():
+    # Validar y actualizar cada campo individualmente
+    if update_data.email:
+        user.email = update_data.email
+    if update_data.username:
+        existing_user = db.query(User).filter(User.username == update_data.username).first()
+        if existing_user:
             raise HTTPException(status_code=400, detail="El nombre de usuario ya está en uso")
-        user.username = profile_data.username
-    if profile_data.birthday is not None:
-        user.birthday = profile_data.birthday
-    if profile_data.gender is not None:
-        user.gender = profile_data.gender
-    if profile_data.current_weight is not None:
-        user.current_weight = profile_data.current_weight
-    if profile_data.current_height is not None:
-        user.current_height = profile_data.current_height
+        user.username = update_data.username
+    if update_data.birthday:
+        user.birthday = update_data.birthday
+    if update_data.gender:
+        if update_data.gender not in ["Masculino", "Femenino"]:
+            raise HTTPException(status_code=400, detail="El género debe ser Masculino o Femenino")
+        user.gender = update_data.gender
+    if update_data.current_weight is not None:
+        user.current_weight = update_data.current_weight
+    if update_data.current_height is not None:
+        user.current_height = update_data.current_height
 
-    # Guardar los cambios
-    db.commit()
-    db.refresh(user)
-    return {"message": "Perfil actualizado exitosamente", "updated_user": user}
+    # Guardar cambios en la base de datos
+    try:
+        db.commit()
+        db.refresh(user)
+        return {"message": "Campo actualizado con éxito", "updated_user": user}
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Error al actualizar el perfil")
 
 @app.post("/user/{username}/change-password")
 async def change_password(
