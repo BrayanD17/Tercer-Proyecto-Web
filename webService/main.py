@@ -8,12 +8,14 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 import datetime
 import csv
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict, EmailStr, validator
 from sqlalchemy.exc import IntegrityError
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import timedelta
-from typing import List
+from typing import Optional
+from fastapi import Path, Query
+from typing import Optional, List
 
 app = FastAPI()
 # Configura CORS
@@ -149,11 +151,45 @@ class LoginRequest(BaseModel):
     username: str
     password: str
 
+class UserProfileResponse(BaseModel):
+    email: str
+    username: str
+    birthday: datetime.datetime
+    gender: str
+    current_weight: float
+    current_height: float
+
+class UserProfileUpdateRequest(BaseModel):
+    email: str | None = None
+    username: str | None = None
+    birthday: datetime.datetime | None = None
+    gender: str | None = None
+    current_weight: float | None = None
+    current_height: float | None = None
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+class UserUpdateRequest(BaseModel):
+    email: Optional[EmailStr] = None
+    username: Optional[str] = None
+    birthday: Optional[datetime.datetime] = None  # Específico como datetime.datetime
+    gender: Optional[str] = None
+    current_weight: Optional[float] = None
+    current_height: Optional[float] = None
+
+    @validator("current_weight", "current_height")
+    def validate_positive(cls, value):
+        if value is not None and value <= 0:
+            raise ValueError("Los valores de peso y altura deben ser positivos.")
+        return value
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
+
 # Endpoints
 @app.post("/register/")
 async def register_user(user: RegisterUserRequest, db: Session = Depends(get_db)):
-    print("Datos recibidos para registro:", user.dict())  # Verifica los datos recibidos
-    
     # Cifrar la contraseña
     hashed_password = pwd_context.hash(user.password)
     new_user = User(
@@ -169,11 +205,9 @@ async def register_user(user: RegisterUserRequest, db: Session = Depends(get_db)
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
-        print("Usuario registrado exitosamente:", new_user.id)
         return {"message": "Usuario registrado con éxito"}
     except IntegrityError as e:
         db.rollback()
-        print("Error en registro:", e)  # Imprime el error específico
         raise HTTPException(status_code=400, detail="El correo electrónico o nombre de usuario ya está registrado")
 
 @app.get("/users/", response_model=List[str])
@@ -184,7 +218,6 @@ async def get_all_usernames(db: Session = Depends(get_db)):
 @app.post("/login/")
 async def login(user: LoginRequest, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.username == user.username).first()
-    print("Datos de inicio de sesión:", user.username, user.password)
     if db_user is None or not pwd_context.verify(user.password, db_user.password):
         raise HTTPException(status_code=400, detail="Credenciales incorrectas")
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -194,6 +227,82 @@ async def login(user: LoginRequest, db: Session = Depends(get_db)):
 @app.post("/logout/")
 async def logout():
     return {"message": "Sesión cerrada con éxito"}
+
+@app.get("/user/{username}", response_model=UserProfileResponse)
+async def get_user_profile(username: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return user
+
+@app.post("/user/{username}/update-field")
+async def update_user_field(
+    username: str,
+    update_data: UserUpdateRequest,
+    db: Session = Depends(get_db)
+):
+    # Buscar el usuario en la base de datos
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    # Validar y actualizar cada campo individualmente
+    if update_data.email:
+        user.email = update_data.email
+    if update_data.username:
+        existing_user = db.query(User).filter(User.username == update_data.username).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="El nombre de usuario ya está en uso")
+        user.username = update_data.username
+    if update_data.birthday:
+        user.birthday = update_data.birthday
+    if update_data.gender:
+        if update_data.gender not in ["Masculino", "Femenino"]:
+            raise HTTPException(status_code=400, detail="El género debe ser Masculino o Femenino")
+        user.gender = update_data.gender
+    if update_data.current_weight is not None:
+        user.current_weight = update_data.current_weight
+    if update_data.current_height is not None:
+        user.current_height = update_data.current_height
+
+    # Guardar cambios en la base de datos
+    try:
+        db.commit()
+        db.refresh(user)
+        return {"message": "Campo actualizado con éxito", "updated_user": user}
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Error al actualizar el perfil")
+
+@app.post("/user/{username}/change-password")
+async def change_password(
+    username: str,
+    password_data: PasswordChangeRequest,
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Verificar si la contraseña actual es correcta
+    if not pwd_context.verify(password_data.current_password, user.password):
+        raise HTTPException(status_code=400, detail="La contraseña actual es incorrecta")
+    
+    # Validar la nueva contraseña (puedes añadir más validaciones si es necesario)
+    if len(password_data.new_password) < 10 or not any(c.isalpha() for c in password_data.new_password) or \
+       not any(c.isdigit() for c in password_data.new_password) or not any(c in '!@#$%^&*(),.?":{}|<>' for c in password_data.new_password):
+        raise HTTPException(
+            status_code=400, 
+            detail="La nueva contraseña debe tener al menos 10 caracteres, incluir letras, números y al menos un símbolo."
+        )
+
+    # Cifrar la nueva contraseña y actualizarla en la base de datos
+    hashed_new_password = pwd_context.hash(password_data.new_password)
+    user.password = hashed_new_password
+    db.commit()
+    db.refresh(user)
+
+    return {"message": "Contraseña actualizada exitosamente"}
 
 # Servicio para importar datos de sensores
 @app.post("/importar_sensores/")

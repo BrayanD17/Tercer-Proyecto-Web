@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Login from '../login-register/Login';
 import Register from '../login-register/Register';
 import ClientView from './ClientView';
+import { AuthContext } from '../../context/AuthContext';
 
 const LoginRegisterComponent = () => {
+  const { username } = useContext(AuthContext);
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -23,8 +25,12 @@ const LoginRegisterComponent = () => {
     setIsRegistering(false); 
   };
 
+  const handleLogout = () => {
+    setIsLoggedIn(false); 
+  };
+  
   if (isLoggedIn) {
-    return <ClientView />;
+    return <ClientView username={username} onLogout={handleLogout} />;
   }
 
   return (
