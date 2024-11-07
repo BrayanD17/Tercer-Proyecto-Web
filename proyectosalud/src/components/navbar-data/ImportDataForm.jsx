@@ -35,9 +35,16 @@ const ImportDataForm = ({ onCancel }) => {
     formData.append('archivo', archivo);
 
     try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        setMensaje('No se encontró un token de autorización. Inicia sesión de nuevo.');
+        return;
+      }
+
       const response = await axios.post('http://localhost:8000/importar_sensores/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`,  // Añade el token al encabezado de autorización
         },
       });
 
