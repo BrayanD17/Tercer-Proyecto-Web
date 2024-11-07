@@ -1,16 +1,15 @@
 import React from "react";
-import "../styles/Dashboard.css"
-import Scorecard from "./graphics/Scorecard";
-import GlassChart from "./graphics/GlassChart";
-import StepsChart from "./graphics/StepChart";
-import BarChart from "./graphics/BarChart";
+import '../../styles/Dashboard.css';
+import Scorecard from "../graphics/Scorecard";
+import GlassChart from "../graphics/GlassChart";
+import StepsChart from "../graphics/StepChart";
+import BarChart from "../graphics/BarChart";
 import ExerciseTable from "./Exercise";
-import IMCChart from "./graphics/IMCChart";
-import HeightChart from "./graphics/HeightChart";
+import IMCChart from "../graphics/IMCChart";
+import HeightChart from "../graphics/HeightChart";
 import DataHistory from "./DataHistorySection";
 
 const Dashboard =()=>{
-    //Agregar los fetch para filtrar los datos y agregarlos a los graficos
     const exercisesData = [ 
         { name: "Correr", duration: 30 },
         { name: "Flexiones", duration: 15 },

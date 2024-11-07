@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import Background from './Background';
 import ImportDataForm from './ImportDataForm';
+import UserProfile from './UserProfile'; // Importar UserProfile
 import '../../styles/NavigationBar.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Importa FontAwesomeIcon
-import { faArrowUpFromBracket, faCircleUser } from '@fortawesome/free-solid-svg-icons'; // Importa los íconos
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; 
+import { faArrowUpFromBracket, faCircleUser } from '@fortawesome/free-solid-svg-icons';
 
 const NavigationBar = ({ onImportData, onUserProfileClick }) => {
   const [isFormVisible, setIsFormVisible] = useState(false);
+  const [isUserProfileVisible, setIsUserProfileVisible] = useState(false); // Estado para mostrar UserProfile
   const [message, setMessage] = useState('');
 
   const handleImportClick = () => {
@@ -15,7 +17,7 @@ const NavigationBar = ({ onImportData, onUserProfileClick }) => {
 
   const handleImportSubmit = (tipoDato, mensaje) => {
     setMessage(`Datos importados: ${tipoDato} - ${mensaje}`);
-    setIsFormVisible(false); // Cerrar el formulario después de la importación
+    setIsFormVisible(false);
     if (onImportData) {
       onImportData(tipoDato, mensaje);
     }
@@ -25,25 +27,34 @@ const NavigationBar = ({ onImportData, onUserProfileClick }) => {
     setIsFormVisible(false);
   };
 
+  const toggleUserProfile = () => {
+    setIsUserProfileVisible(!isUserProfileVisible);
+  };
+
   return (
     <>
       <nav className="navbar">
-        {/* Nombre de nuestro Proyecto*/}
         <h1 className="title">HealthSync</h1>
 
-        {/* Icono para importar CSV con FontAwesomeIcon */}
         <div className="import-data-icon" onClick={handleImportClick} title="Importar datos de sensores">
           <FontAwesomeIcon icon={faArrowUpFromBracket} style={{ color: '#ffffff', fontSize: '24px' }} />
         </div>
 
-        {/* Reemplazar imagen de usuario por el ícono circle-user */}
-        <FontAwesomeIcon
-          icon={faCircleUser}
-          className="user-icon"
-          style={{ color: '#ffffff', fontSize: '40px', cursor: 'pointer' }}
-          onClick={onUserProfileClick} // Redirigir al perfil al hacer clic
-          title="Perfil de usuario"
-        />
+        {/* Icono de usuario */}
+        <div className="user-profile-container">
+          <FontAwesomeIcon
+            icon={faCircleUser}
+            className="user-icon"
+            style={{ color: '#ffffff', fontSize: '40px', cursor: 'pointer' }}
+            onClick={toggleUserProfile}
+            title="Perfil de usuario"
+          />
+          {isUserProfileVisible && (
+            <div className="user-profile">
+              <UserProfile />
+            </div>
+          )}
+        </div>
       </nav>
 
       {isFormVisible && (
@@ -55,7 +66,7 @@ const NavigationBar = ({ onImportData, onUserProfileClick }) => {
         </Background>
       )}
 
-      {message && <p>{message}</p>} {/* Mostrar mensaje de importación */}
+      {message && <p>{message}</p>}
     </>
   );
 };

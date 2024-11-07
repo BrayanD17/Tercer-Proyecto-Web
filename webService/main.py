@@ -13,6 +13,7 @@ from sqlalchemy.exc import IntegrityError
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import timedelta
+from typing import List
 
 app = FastAPI()
 # Configura CORS
@@ -175,6 +176,10 @@ async def register_user(user: RegisterUserRequest, db: Session = Depends(get_db)
         print("Error en registro:", e)  # Imprime el error específico
         raise HTTPException(status_code=400, detail="El correo electrónico o nombre de usuario ya está registrado")
 
+@app.get("/users/", response_model=List[str])
+async def get_all_usernames(db: Session = Depends(get_db)):
+    users = db.query(User.username).all()
+    return [user[0] for user in users]  # Retorna solo los nombres de usuario
 
 @app.post("/login/")
 async def login(user: LoginRequest, db: Session = Depends(get_db)):

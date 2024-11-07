@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import '../../styles/Register.css';
 import { AuthContext } from '../../context/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
@@ -7,7 +7,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const Register = ({ onSubmit, onCancel }) => {
-  const { register } = useContext(AuthContext);
+  const { register, getUsernames } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     email: '',
     username: '',
@@ -18,10 +18,19 @@ const Register = ({ onSubmit, onCancel }) => {
     birthday: '',
     gender: 'Masculino'
   });
+  const [usernames, setUsernames] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [emailError, setEmailError] = useState('');
+
+  useEffect(() => {
+    const fetchUsernames = async () => {
+      const usernamesList = await getUsernames();
+      setUsernames(usernamesList);
+    };
+    fetchUsernames();
+  }, [getUsernames]);
 
   const handleChange = (e) => {
     setFormData({
@@ -71,6 +80,12 @@ const Register = ({ onSubmit, onCancel }) => {
       setEmailError('');
     }
 
+    // Validar nombre de usuario único
+    if (usernames.includes(formData.username)) {
+      toast.error("El nombre de usuario ya está en uso. Elige otro.");
+      return;
+    }
+
     // Validar contraseña
     const passwordValidationMessage = validatePassword(formData.password);
     if (passwordValidationMessage) {
@@ -113,7 +128,7 @@ const Register = ({ onSubmit, onCancel }) => {
     const success = await register(userData);
     if (success) {
       toast.success("Registro exitoso", { autoClose: 5000 });
-      setTimeout(onSubmit, 1000); // Espera breve para cerrar el formulario
+      setTimeout(onSubmit, 1000);
     } else {
       toast.error("Error en el registro");
     }

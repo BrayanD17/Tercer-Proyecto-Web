@@ -2,50 +2,66 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #1565C0; /* Color más oscuro para un estilo moderno */
-  padding: 15px 20px; /* Espaciado mayor para más aire */
+  background-color: #1565C0; /* Color oscuro para estilo moderno */
+  padding: 15px 20px;
   color: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Añadir sombra para efecto de profundidad */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .title {
   font-size: 26px;
   font-weight: 700;
-  margin: 0;
   color: #FFFFFF;
-  margin-right: auto; /* Asegura que el título se alinee a la izquierda */
+  margin-right: auto;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
-
 /* Estilo del icono de importación */
 .import-data-icon {
-  font-size: 28px; /* Tamaño del icono mayor para mejor visibilidad */
+  font-size: 28px;
   color: white;
   cursor: pointer;
-  margin-right: 25px; /* Más espacio entre el icono y el borde */
-  transition: transform 0.3s ease, color 0.3s ease; /* Transición suave para efectos */
+  margin-right: 25px;
+  transition: transform 0.3s ease, color 0.3s ease;
 }
 
 .import-data-icon:hover {
-  color: #64DD17; /* Verde para destacar al hacer hover */
-  transform: scale(1.2); /* Aumenta el tamaño al hacer hover */
+  color: #64DD17;
+  transform: scale(1.2);
 }
 
 /* Estilo del icono de perfil de usuario */
+.user-profile-container {
+  position: relative;
+}
+
 .user-icon {
-  font-size: 40px; /* Asegura que el ícono sea visible y proporcional */
+  font-size: 40px;
   cursor: pointer;
   transition: transform 0.3s ease, color 0.3s ease;
 }
 
 .user-icon:hover {
-  color: #64DD17; /* Cambia de color al hacer hover */
-  transform: scale(1.2); /* Aumenta el tamaño al hacer hover */
+  color: #64DD17;
+  transform: scale(1.2);
 }
 
-/* Para una experiencia móvil más fluida */
+/* Estilos para el menú desplegable del perfil de usuario */
+.user-profile {
+  position: absolute;
+  top: 60px; /* Ajusta según el tamaño de la barra de navegación */
+  right: 0;
+  background-color: #ffffff;
+  color: #333333;
+  width: 250px;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+/* Ajuste para pantallas móviles */
 @media (max-width: 425px) {
   .navbar {
     padding: 10px;

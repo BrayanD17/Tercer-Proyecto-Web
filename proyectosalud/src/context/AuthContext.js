@@ -58,6 +58,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
   
+  const getUsernames = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/users/");
+      if (response.ok) {
+        return await response.json();
+      } else {
+        throw new Error("Error al obtener nombres de usuario");
+      }
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  };
 
   const logout = () => {
     setToken(null);
@@ -65,7 +78,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ token, login, register, logout }}>
+    <AuthContext.Provider value={{ token, login, register, getUsernames, logout }}>
       {children}
     </AuthContext.Provider>
   );

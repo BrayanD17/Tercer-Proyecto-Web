@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/ExerciseTable.css"
+import "../../styles/ExerciseTable.css"
 const ExerciseTable = ({ exercises }) => {
     return (
         <div className="exercise-table">
