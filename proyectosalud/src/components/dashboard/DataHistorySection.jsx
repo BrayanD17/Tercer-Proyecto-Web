@@ -1,40 +1,83 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "../../styles/DataHistorySection.css";
 import ChartHistorical from "../graphics/ChartHistorical";
 
 const DataHistory = () => {
     const [periodo, setPeriodo] = useState('1 semana');
     const [tipoGrafico, setTipoGrafico] = useState('peso');
-    const [historicalData, setHistoricalData] = useState([]);
-    const [loading, setLoading] = useState(false);
+
+    const historicalDataStatic = {
+        peso: [
+          { date: "2024-10-01", value: 70 },
+          { date: "2024-10-02", value: 71 },
+          { date: "2024-10-03", value: 70.5 },
+          { date: "2024-10-04", value: 71.2 },
+          { date: "2024-10-05", value: 70.8 },
+          { date: "2024-10-06", value: 70 },
+          { date: "2024-09-05", value: 69.5 },
+          { date: "2024-09-14", value: 67 },
+          { date: "2024-09-12", value: 68 },
+          { date: "2024-09-10", value: 69 },
+          { date: "2024-09-08", value: 55 },
+          { date: "2024-07-05", value: 56},
+          { date: "2024-07-02", value: 57 },
+          { date: "2024-07-03", value: 58},
+          { date: "2024-07-01", value: 57 },
+          { date: "2024-07-03", value: 58},
+          { date: "2024-07-01", value: 57 },
+          { date: "2024-07-03", value: 58},
+          { date: "2024-07-01", value: 57 },
+        ],
+        musculo: [
+          { date: "2024-10-01", value: 25 },
+          { date: "2024-10-02", value: 25.5 },
+          { date: "2024-10-03", value: 26 },
+          { date: "2024-10-04", value: 26.5 },
+          { date: "2024-10-05", value: 27 },
+          { date: "2024-10-06", value: 27.5 },
+          { date: "2024-10-07", value: 28 },
+        ],
+        grasa: [
+          { date: "2024-10-01", value: 20 },
+          { date: "2024-10-02", value: 19.5 },
+          { date: "2024-10-03", value: 19 },
+          { date: "2024-10-04", value: 18.8 },
+          { date: "2024-10-05", value: 18.5 },
+          { date: "2024-10-06", value: 18.2 },
+          { date: "2024-10-07", value: 18 },
+        ],
+        agua: [
+          { date: "2024-10-01", value: 2 },
+          { date: "2024-10-02", value: 2.5 },
+          { date: "2024-10-03", value: 3 },
+          { date: "2024-10-04", value: 2.8 },
+          { date: "2024-10-05", value: 3.1 },
+          { date: "2024-10-06", value: 2.9 },
+          { date: "2024-10-07", value: 3 },
+        ],
+        pasos: [
+          { date: "2024-10-01", value: 8000 },
+          { date: "2024-10-02", value: 12000 },
+          { date: "2024-10-03", value: 10000 },
+          { date: "2024-10-04", value: 7000 },
+          { date: "2024-10-05", value: 9500 },
+          { date: "2024-10-06", value: 11000 },
+          { date: "2024-10-07", value: 9000 },
+        ],
+        ejercicio: [
+          { date: "2024-10-01", value: 30 },
+          { date: "2024-10-02", value: 45 },
+          { date: "2024-10-03", value: 60 },
+          { date: "2024-10-04", value: 50 },
+          { date: "2024-10-05", value: 40 },
+          { date: "2024-10-06", value: 70 },
+          { date: "2024-10-07", value: 55 },
+        ]
+    };
 
     const handleTipoGraficoChange = (e) => {
         setTipoGrafico(e.target.value);
     };
-
-    const fetchHistoricalData = async () => {
-        setLoading(true);
-        try {
-            const response = await fetch(`http://localhost:8000/historico_datos/?tipo_dato=${tipoGrafico}&periodo_tiempo=${periodo}`);
-            if (!response.ok) throw new Error("Error al obtener los datos");
-            
-            const data = await response.json();
-            const formattedData = Object.entries(data).map(([key, value]) => ({
-                date: key,
-                value: value
-            }));
-            
-            setHistoricalData(formattedData);
-        } catch (error) {
-            console.error(error.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchHistoricalData();
-    }, [tipoGrafico, periodo]);
 
     return (
         <div className="principal-history-section">
@@ -53,27 +96,23 @@ const DataHistory = () => {
                 <div className="select-graphic">
                     <label htmlFor="tipoGrafico">Selecciona el histórico: </label>
                     <select id="tipoGrafico" onChange={handleTipoGraficoChange} value={tipoGrafico}>
-                        <option value="pesos">Histórico del peso</option>
-                        <option value="musculo">Histórico del músculo</option>
-                        <option value="porcentaje_grasa">Histórico del porcentaje de grasa corporal</option>
-                        <option value="vasos_de_agua">Histórico de la cantidad total de vasos de agua y litros totales</option>
-                        <option value="pasos_diarios">Histórico de la cantidad total de pasos dados</option>
-                        <option value="ejercicios">Histórico de la cantidad total y duración total de ejercicios</option>
+                        <option value="peso">Histórico de peso</option>
+                        <option value="musculo">Histórico de músculo</option>
+                        <option value="grasa">Histórico del porcentaje de grasa corporal</option>
+                        <option value="agua">Histórico de agua consumida</option>
+                        <option value="pasos">Histórico de total de pasos</option>
+                        <option value="ejercicio">Histórico de ejercicios</option>
                     </select>
-
                 </div>
             </div>
             <div className="historical-chart">
-                {loading ? (
-                    <p>Cargando datos...</p>
-                ) : (
-                    historicalData.length > 0 && (
-                        <ChartHistorical 
-                            data={historicalData} 
-                            tipo={tipoGrafico === "peso" ? "line" : tipoGrafico === "musculo" ? "area" : tipoGrafico === "grasa" ? "line" : "bar"}
-                            title={`Gráfico de ${tipoGrafico} durante ${periodo}`} 
-                        />
-                    )
+                 {/*Verificar cual tipo de grafico es mejor usar (se debe modificar y ver como se van a mostrar el historico de agua y ejercicios)*/}
+                {historicalDataStatic[tipoGrafico] && (
+                    <ChartHistorical 
+                        data={historicalDataStatic[tipoGrafico]} 
+                        tipo={tipoGrafico === "peso" ? "line" : tipoGrafico === "musculo" ? "area" :tipoGrafico === "grasa" ? "line": "bar"}
+                        title={`Gráfico de ${tipoGrafico} durante ${periodo}`} 
+                    />
                 )}
             </div>
         </div>
