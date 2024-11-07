@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/UserProfile.css'; // Agrega estilos personalizados para este componente
+import '../../styles/UserProfile.css'; // Agrega estilos personalizados para este componente
 
 const UserProfile = () => {
   return (
