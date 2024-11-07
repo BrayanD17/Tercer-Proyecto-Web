@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }) => {
         setUsername(username);
         localStorage.setItem("token", data.access_token);
         localStorage.setItem("username", username);
+        localStorage.setItem("user_id", data.user_id); 
         return true;
       } else {
         throw new Error(data.detail);
@@ -108,6 +109,7 @@ export const AuthProvider = ({ children }) => {
         if (field === "username") {
           setUsername(value);
           localStorage.setItem("username", value);
+          
         }
         return true;
       } else {
