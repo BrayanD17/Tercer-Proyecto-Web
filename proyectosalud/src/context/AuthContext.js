@@ -96,16 +96,6 @@ export const AuthProvider = ({ children }) => {
 
   const updateUserField = async (username, field, value) => {
     try {
-      // Si el campo es "birthday", formateamos la fecha con hora incluida
-      if (field === "birthday" && value) {
-        const date = new Date(value);
-        // Convertir a "YYYY-MM-DDT00:00:00" formato ISO
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        value = `${year}-${month}-${day}T00:00:00`;
-      }
-  
       const response = await fetch(`http://127.0.0.1:8000/user/${username}/update-field`, {
         method: "POST",
         headers: {
@@ -129,26 +119,29 @@ export const AuthProvider = ({ children }) => {
       console.error(error);
       return false;
     }
-  };    
+  };
 
   const changePassword = async (username, currentPassword, newPassword) => {
+    console.log("Llamando al endpoint para cambiar contraseña con:", { username, currentPassword, newPassword });
     try {
-      const response = await fetch(`http://127.0.0.1:8000/user/${username}/change-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
-      });
-      if (response.ok) {
-        return true;
-      } else {
-        throw new Error("Error al cambiar la contraseña");
-      }
+        const response = await fetch("http://127.0.0.1:8000/user/change-password", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ username, current_password: currentPassword, new_password: newPassword }),
+        });
+        if (response.ok) {
+            console.log("Respuesta del servidor:", await response.json());
+            return true;
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "Error al cambiar la contraseña");
+        }
     } catch (error) {
-      console.error(error);
-      return false;
+        console.error("Error en changePassword:", error);
+        return false;
     }
   };
 

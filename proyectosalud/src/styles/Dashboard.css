@@ -1,8 +1,7 @@
-.principal-container{
+.principal-container {
     background-color: #f4f4f4;
-    min-height: 100vh; /* Asegura que el contenedor ocupe al menos el 100% de la altura de la ventana */
+    min-height: 100vh;
     padding: 20px;
-
 }
 
 .vista-general {
@@ -16,7 +15,6 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     width: 65%;
-    /*margin-left: 45px;*/
 }
 
 .derecha {
@@ -24,11 +22,11 @@
     flex-direction: column;
     gap: 10px;
     justify-content: space-between;
-    width: 35%; 
+    width: 35%;
     margin-left: 15px;
 }
 
-.weights-container, .body-pat-percentaje-container, .daily-step-container, .body-composition-container, .exercise-container{
+.weights-container, .body-pat-percentaje-container, .daily-step-container, .body-composition-container, .exercise-container {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -40,31 +38,19 @@
 
 .weights-container, .body-pat-percentaje-container, .daily-step-container {
     grid-column: span 1;
-    min-width: 226px; /* Ancho mínimo */
-    height: auto; /* Ajusta el alto automáticamente */
-    max-height: 100px; /* Alto máximo */
-    overflow: hidden; /* Oculta el contenido que exceda el alto máximo */
+    min-width: 226px;
+    max-height: 100px;
+    overflow: hidden;
 }
 
-.body-composition-container {
+.body-composition-container, .exercise-container {
     grid-column: span 3;
-    width: auto; /* Ajusta el ancho automáticamente */
-    max-width: 100%; /* Ancho máximo */
-    height: auto; /* Ajusta el alto automáticamente */
-    max-height: 600px; /* Alto máximo */
+    max-width: 100%;
+    max-height: 600px;
     overflow: auto;
 }
 
-.exercise-container {
-    grid-column: span 3;
-    width: auto; /* Ajusta el ancho automáticamente */
-    max-width: 100%; /* Ancho máximo */
-    height: auto; /* Ajusta el alto automáticamente */
-    max-height: 600px; /* Alto máximo */
-    overflow: auto;
-}
-
-.heights-container, .water-consumption-container, .IMC-conteiner{
+.heights-container, .water-consumption-container, .IMC-conteiner {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -72,24 +58,37 @@
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    min-height: 250px; /* Altura mínima */
-    height: 100%; /* Asegura que los contenedores llenen la altura de la fila */
+    min-height: 250px;
+    height: 100%;
     overflow: hidden;
 }
 
-.vista-historicos{
+.vista-historicos {
     margin-bottom: 10vh;
 }
 
-/*Pequeñas y menores*/
-@media (max-width: 430px) {}
-/* Pequeño (tabletas en modo vertical) */
-@media (min-width: 576px) and (max-width: 768px) {}
-/* Mediano (tabletas en modo horizontal) */
-@media (min-width: 768px) and (max-width: 1024px) {}
-/* Grande (laptops pequeñas) Mia al 100%*/
-@media (min-width: 1025px) and (max-width: 1440px) {
-}
-/* Extra grande (pantallas grandes) */
-@media (min-width: 1441px) {}
+@media (max-width: 768px) {
+    .vista-general {
+        flex-direction: column;
+    }
 
+    .izquierda {
+        width: 100%;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .derecha {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .weights-container, .body-pat-percentaje-container, .daily-step-container, .body-composition-container, .exercise-container {
+        max-height: unset;
+    }
+}
+
+@media (max-width: 576px) {
+    .izquierda {
+        grid-template-columns: 1fr;
+    }
+}

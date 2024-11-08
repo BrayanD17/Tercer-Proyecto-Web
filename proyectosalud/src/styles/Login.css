@@ -2,9 +2,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #F0F4F8; /* Fondo azul muy claro */
+  background-color: #F0F4F8;
   height: 100vh;
-  overflow: hidden; /* Evita el scroll */
+  overflow: hidden;
 }
 
 .login-container {
@@ -49,12 +49,12 @@
 .login-input {
   width: 100%;
   padding: 10px;
-  padding-right: 40px; 
+  padding-right: 40px;
   border: 1px solid #CCCCCC;
   border-radius: 4px;
   box-sizing: border-box;
   color: #333333;
-  height: 40px; 
+  height: 40px;
 }
 
 .login-input::placeholder {
@@ -110,4 +110,32 @@
 
 .login-button-register:hover {
   background-color: #0A47A1;
+}
+
+@media (max-width: 768px) {
+  .login-form {
+    padding: 15px;
+    max-width: 300px;
+  }
+
+  .login-button {
+    font-size: 14px;
+    padding: 8px 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-logo {
+    width: 120px;
+  }
+
+  .login-form {
+    padding: 10px;
+    max-width: 260px;
+  }
+
+  .login-button {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
 }

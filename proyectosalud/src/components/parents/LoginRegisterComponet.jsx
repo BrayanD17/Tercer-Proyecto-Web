@@ -26,11 +26,12 @@ const LoginRegisterComponent = () => {
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false); 
-  };
+    console.log("Updating isLoggedIn to false...");
+    setIsLoggedIn(false);
+  };  
   
   if (isLoggedIn) {
-    return <ClientView username={username} onLogout={handleLogout} />; 
+    return <ClientView username={username} onLogout={handleLogout} />;
   }
 
   return (

@@ -18,19 +18,18 @@
 }
 
 .logo {
-    width: 120px;
+    width: 100px;
 }
 
 .profile-info .field {
     display: flex;
     align-items: center;
     margin: 18px 0;
-    position: relative;
 }
 
 .field label {
     font-weight: bold;
-    width: 140px;
+    width: 120px;
     color: #1565C0;
 }
 
@@ -53,11 +52,7 @@
 .field .error {
     color: #d9534f;
     font-size: 0.9em;
-    margin-top: 5px;
-    position: absolute;
-    top: calc(100% + 2px);
-    left: 0;
-    width: 100%;
+    margin-left: 15px;
 }
 
 .logout-btn {
@@ -78,6 +73,7 @@
     background-color: #c9302c;
 }
 
+/* Icono de lápiz con mejor estilo */
 .field svg {
     margin-left: 12px;
     cursor: pointer;
@@ -89,6 +85,7 @@
     color: #1565C0;
 }
 
+/* Botón de guardar */
 .field button {
     margin-left: 10px;
     padding: 5px 12px;
@@ -103,4 +100,46 @@
 
 .field button:hover {
     background-color: #43a047;
+}
+
+@media (max-width: 768px) {
+    .edit-profile {
+        padding: 20px;
+        margin: 20px;
+    }
+
+    .field label {
+        width: 100px;
+    }
+
+    .field input,
+    .field select {
+        max-width: 100%;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .edit-profile {
+        padding: 15px;
+        margin: 15px;
+    }
+
+    .field label {
+        width: 90px;
+    }
+
+    .logo {
+        width: 80px;
+    }
+
+    .field input,
+    .field select {
+        padding: 6px 8px;
+        font-size: 0.9em;
+    }
 }

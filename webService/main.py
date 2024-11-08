@@ -13,7 +13,8 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from typing import Optional, List
 from fastapi.security import OAuth2PasswordBearer
-
+from sqlalchemy import func
+from decimal import Decimal
 app = FastAPI()
 # Configura CORS
 app.add_middleware(
@@ -174,29 +175,9 @@ class UserUpdateRequest(BaseModel):
         return value
 
 class PasswordChangeRequest(BaseModel):
+    username: str
     current_password: str
     new_password: str
-    
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/")
-
-# Función para obtener el usuario actual a partir del token
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    credentials_exception = HTTPException(
-        status_code=401, detail="Could not validate credentials"
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-
-    user = db.query(User).filter(User.username == username).first()
-    if user is None:
-        raise credentials_exception
-    return user
-
 
 # Endpoints
 @app.post("/register/")
@@ -233,7 +214,7 @@ async def login(user: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Credenciales incorrectas")
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(data={"sub": db_user.username}, expires_delta=access_token_expires)
-    return {"access_token": access_token, "token_type": "bearer", "user_id": db_user.id} 
+    return {"access_token": access_token, "token_type": "bearer"}
 
 @app.post("/logout/")
 async def logout():
@@ -286,35 +267,64 @@ async def update_user_field(
         db.rollback()
         raise HTTPException(status_code=400, detail="Error al actualizar el perfil")
     
-@app.post("/user/{username}/change-password")
+@app.post("/user/change-password")
 async def change_password(
-    username: str,
     password_data: PasswordChangeRequest,
     db: Session = Depends(get_db)
 ):
-    user = db.query(User).filter(User.username == username).first()
+    print("Iniciando el cambio de contraseña")
+    print("Datos recibidos para cambiar contraseña:", password_data)
+    
+    # Buscar al usuario por el nombre de usuario
+    user = db.query(User).filter(User.username == password_data.username).first()
+    print("Usuario encontrado:", user.username if user else "No encontrado")
+    
+    # Verificar si el usuario existe
     if not user:
+        print("Usuario no encontrado")
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     
     # Verificar si la contraseña actual es correcta
     if not pwd_context.verify(password_data.current_password, user.password):
+        print("Contraseña actual incorrecta")
         raise HTTPException(status_code=400, detail="La contraseña actual es incorrecta")
     
-    # Validar la nueva contraseña (puedes añadir más validaciones si es necesario)
+    # Validar la nueva contraseña
     if len(password_data.new_password) < 10 or not any(c.isalpha() for c in password_data.new_password) or \
-       not any(c.isdigit() for c in password_data.new_password) or not any(c in '!@#$%^&*(),.?":{}|<>' for c in password_data.new_password):
+        not any(c.isdigit() for c in password_data.new_password) or not any(c in '!@#$%^&*(),.?":{}|<>' for c in password_data.new_password):
+        print("Validación de nueva contraseña fallida")
         raise HTTPException(
             status_code=400, 
             detail="La nueva contraseña debe tener al menos 10 caracteres, incluir letras, números y al menos un símbolo."
         )
-
+    
     # Cifrar la nueva contraseña y actualizarla en la base de datos
     hashed_new_password = pwd_context.hash(password_data.new_password)
     user.password = hashed_new_password
     db.commit()
     db.refresh(user)
-
+    print("Contraseña actualizada exitosamente")
     return {"message": "Contraseña actualizada exitosamente"}
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/")
+
+# Función para obtener el usuario actual a partir del token
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=401, detail="Could not validate credentials"
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = db.query(User).filter(User.username == username).first()
+    if user is None:
+        raise credentials_exception
+    return user
+
 
 # Servicio para importar datos de sensores
 @app.post("/importar_sensores/")
@@ -337,7 +347,7 @@ async def importar_sensores(
         if tipo_dato == "pesos":
             for fila in lector:
                 fecha, peso = fila
-                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
+                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")
                 peso = float(peso)
                 nuevo_peso = Weight(date=fecha, weight=peso, userId=user_id) 
                 actualizar_o_insertar(db, Weight, nuevo_peso)
@@ -345,7 +355,7 @@ async def importar_sensores(
         elif tipo_dato == "alturas":
             for fila in lector:
                 fecha, altura = fila
-                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
+                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")
                 altura = float(altura)
                 nueva_altura = Height(date=fecha, height=altura, userId=user_id)
                 actualizar_o_insertar(db, Height, nueva_altura)
@@ -353,7 +363,7 @@ async def importar_sensores(
         elif tipo_dato == "composicion_corporal":
             for fila in lector:
                 fecha, grasa, musculo, agua = fila
-                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
+                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")
                 grasa = float(grasa)
                 musculo = float(musculo)
                 agua = float(agua)
@@ -363,14 +373,14 @@ async def importar_sensores(
         elif tipo_dato == "porcentaje_grasa":
             for fila in lector:
                 fecha, porcentaje_grasa = fila
-                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
+                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")
                 porcentaje_grasa = float(porcentaje_grasa)
                 nuevo_porcentaje_grasa = BodyFatPercentage(date=fecha, fat_percentage=porcentaje_grasa,userId=user_id)
                 actualizar_o_insertar(db, BodyFatPercentage, nuevo_porcentaje_grasa)
         elif tipo_dato == "vasos_de_agua":
             for fila in lector:
                 fecha, vasos_agua = fila
-                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()  # Usar la fecha del archivo
+                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")
                 vasos_agua = int(vasos_agua)
                 nuevo_consumo_agua = WaterConsumption(date=fecha, water_amount=vasos_agua, userId=user_id)
                 actualizar_o_insertar(db, WaterConsumption, nuevo_consumo_agua)
@@ -378,7 +388,7 @@ async def importar_sensores(
         elif tipo_dato == "pasos_diarios":
             for fila in lector:
                 fecha, cantidad_pasos = fila
-                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()  # Usar la fecha del archivo
+                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")
                 cantidad_pasos = int(cantidad_pasos)
                 nuevos_pasos = DailySteps(date=fecha, steps_amount=cantidad_pasos, userId=user_id)
                 actualizar_o_insertar(db, DailySteps, nuevos_pasos)
@@ -386,7 +396,7 @@ async def importar_sensores(
         elif tipo_dato == "ejercicios":
             for fila in lector:
                 fecha, nombre_ejercicio, duracion = fila
-                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
+                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")
                 duracion = int(duracion)
                 nuevo_ejercicio = Exercise(date=fecha, exercise_name=nombre_ejercicio, duration=duracion, userId=user_id)
                 actualizar_o_insertar(db, Exercise, nuevo_ejercicio)
@@ -401,6 +411,113 @@ async def importar_sensores(
         db.rollback()
         raise HTTPException(status_code=400, detail=f"Error al importar datos: {e}")
 
+# Función para calcular la fecha de inicio basada en el período
+def calcular_fecha_inicio(periodo: str) -> datetime:
+    hoy = datetime.utcnow()
+    if periodo == "1 semana":
+        return hoy - timedelta(weeks=1)
+    elif periodo == "1 mes":
+        return hoy - timedelta(days=30)
+    elif periodo == "3 meses":
+        return hoy - timedelta(days=90)
+    elif periodo == "6 meses":
+        return hoy - timedelta(days=180)
+    elif periodo == "1 año":
+        return hoy - timedelta(days=365)
+    else:
+        raise HTTPException(status_code=400, detail="Período no soportado")
+
+@app.get("/historico/")
+async def obtener_historico(
+    tipo_dato: str,
+    periodo: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)  # Obtener el usuario autenticado
+):
+    # Obtener el ID del usuario autenticado
+    user_id = current_user.id
+    # Calcular la fecha de inicio basada en el período
+    inicio = calcular_fecha_inicio(periodo)
+    hoy = datetime.utcnow()
+
+    # Crear un diccionario para almacenar los resultados
+    resultado = {"tipo_dato": tipo_dato, "periodo": periodo, "data": []}
+
+    # Consultas SQL específicas según el tipo de dato
+    if tipo_dato == "peso":
+        # Obtener datos históricos de peso por fecha
+        datos = db.query(Weight.date, Weight.weight) \
+            .filter(Weight.date >= inicio, Weight.date <= hoy, Weight.userId == user_id) \
+            .order_by(Weight.date).all()
+        for fecha, valor in datos:
+            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d %H:%M:%S"), "value": valor})
+
+    elif tipo_dato == "musculo":
+        # Obtener datos históricos de músculo por fecha
+        datos = db.query(BodyComposition.date, BodyComposition.muscle) \
+            .filter(BodyComposition.date >= inicio, BodyComposition.date <= hoy, BodyComposition.userId == user_id) \
+            .order_by(BodyComposition.date).all()
+        for fecha, valor in datos:
+            
+            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d %H:%M:%S"), "value": valor})
+
+    elif tipo_dato == "grasa":
+        # Obtener datos históricos de porcentaje de grasa por fecha
+        datos = db.query(BodyFatPercentage.date, BodyFatPercentage.fat_percentage) \
+            .filter(BodyFatPercentage.date >= inicio, BodyFatPercentage.date <= hoy, BodyFatPercentage.userId == user_id) \
+            .order_by(BodyFatPercentage.date).all()
+        for fecha, valor in datos:
+            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d %H:%M:%S"), "value": valor})
+
+    elif tipo_dato == "agua":
+        # Obtener datos históricos de vasos de agua consumidos por fecha
+        datos = db.query(WaterConsumption.date, WaterConsumption.water_amount) \
+            .filter(WaterConsumption.date >= inicio, WaterConsumption.date <= hoy, WaterConsumption.userId == user_id) \
+            .order_by(WaterConsumption.date).all()
+        for fecha, valor in datos:
+            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d %H:%M:%S"), "value": valor})
+        
+        # Calcular los litros totales de agua
+        total_vasos = sum([valor for _, valor in datos])
+        total_litros = total_vasos * Decimal("0.25")
+        resultado["total_vasos"] = total_vasos
+        resultado["total_litros"] = total_litros
+
+    elif tipo_dato == "pasos":
+        # Obtener datos históricos de pasos por fecha
+        datos = db.query(DailySteps.date, DailySteps.steps_amount) \
+            .filter(DailySteps.date >= inicio, DailySteps.date <= hoy, DailySteps.userId == user_id) \
+            .order_by(DailySteps.date).all()
+        for fecha, valor in datos:
+            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d %H:%M:%S"), "value": valor})
+
+    elif tipo_dato == "ejercicio":
+        # Obtener datos históricos de ejercicios por fecha (con cantidad total y duración total)
+        datos = db.query(Exercise.date, func.count(Exercise.exercise_name), func.sum(Exercise.duration)) \
+            .filter(Exercise.date >= inicio, Exercise.date <= hoy, Exercise.userId == user_id) \
+            .group_by(Exercise.date) \
+            .order_by(Exercise.date).all()
+
+        # Almacenar los datos en el resultado
+        for fecha, total_ejercicios, total_duracion in datos:
+            resultado["data"].append({
+                "date": fecha.strftime("%Y-%m-%d %H:%M:%S"),
+                "value": total_duracion,  # Duración total de ejercicios por fecha (en minutos)
+                "cantidad": total_ejercicios  # Cantidad total de ejercicios realizados en la fecha
+            })
+
+        # Calcular la duración total de ejercicios en todo el periodo
+        total_duracion_ejercicios = sum([total_duracion for _, _, total_duracion in datos])
+        resultado["total_duracion_ejercicios"] = total_duracion_ejercicios
+
+        # Calcular la cantidad total de ejercicios en todo el periodo
+        total_cantidad_ejercicios = sum([total_ejercicios for _, total_ejercicios, _ in datos])
+        resultado["total_cantidad_ejercicios"] = total_cantidad_ejercicios
+
+    else:
+        raise HTTPException(status_code=400, detail="Tipo de dato no soportado")
+
+    return resultado
 # Configuración del token
 SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
