@@ -1,8 +1,8 @@
 .client-view {
   position: relative;
   height: 100vh;
-  overflow-y: auto; /* Permite scroll solo en el eje vertical */
-  overflow-x: hidden; /* Bloquea el scroll en el eje horizontal */
+  overflow-y: auto;
+  overflow-x: hidden;
   width: 100vw;
   box-sizing: border-box;
 }
@@ -22,4 +22,26 @@
 .view-container.show {
   opacity: 1;
   transform: translateX(0);
+}
+
+@media (max-width: 768px) {
+  .client-view {
+    padding: 10px;
+  }
+
+  .view-container {
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+}
+
+@media (max-width: 480px) {
+  .client-view {
+    padding: 5px;
+    overflow-y: auto;
+  }
+
+  .view-container {
+    width: 100%;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
 }

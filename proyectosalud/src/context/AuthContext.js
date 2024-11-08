@@ -130,23 +130,26 @@ export const AuthProvider = ({ children }) => {
   };    
 
   const changePassword = async (username, currentPassword, newPassword) => {
+    console.log("Llamando al endpoint para cambiar contraseña con:", { username, currentPassword, newPassword });
     try {
-      const response = await fetch(`http://127.0.0.1:8000/user/${username}/change-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
-      });
-      if (response.ok) {
-        return true;
-      } else {
-        throw new Error("Error al cambiar la contraseña");
-      }
+        const response = await fetch("http://127.0.0.1:8000/user/change-password", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ username, current_password: currentPassword, new_password: newPassword }),
+        });
+        if (response.ok) {
+            console.log("Respuesta del servidor:", await response.json());
+            return true;
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "Error al cambiar la contraseña");
+        }
     } catch (error) {
-      console.error(error);
-      return false;
+        console.error("Error en changePassword:", error);
+        return false;
     }
   };
 
