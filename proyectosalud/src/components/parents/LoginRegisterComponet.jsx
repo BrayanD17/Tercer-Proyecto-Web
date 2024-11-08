@@ -30,7 +30,7 @@ const LoginRegisterComponent = () => {
   };
   
   if (isLoggedIn) {
-    return <ClientView username={username} onLogout={handleLogout} />;
+    return <ClientView username={username} onLogout={handleLogout} />; 
   }
 
   return (
