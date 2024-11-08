@@ -6,7 +6,7 @@ import '../../styles/NavigationBar.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; 
 import { faArrowUpFromBracket, faBars } from '@fortawesome/free-solid-svg-icons';
 
-const NavigationBar = ({ onImportData, onDashboard, onViewProfile, onEditProfile }) => {
+const NavigationBar = ({ onImportData, onDashboard, onViewProfile, onEditProfile, onChangePassword, onLogout }) => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isUserProfileVisible, setIsUserProfileVisible] = useState(false);
   const [message, setMessage] = useState('');
@@ -54,6 +54,8 @@ const NavigationBar = ({ onImportData, onDashboard, onViewProfile, onEditProfile
           onDashboard={onDashboard} 
           onViewProfile={onViewProfile} 
           onEditProfile={onEditProfile}
+          onChangePassword={onChangePassword} 
+          onLogout={onLogout}
         />
       )}
 

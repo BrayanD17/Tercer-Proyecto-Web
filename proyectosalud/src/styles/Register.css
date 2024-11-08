@@ -16,8 +16,8 @@
 }
 
 .register-logo {
-  width: 40px; /* Ajusta el tamaño del logo */
-  height: 40px; /* Tamaño uniforme */
+  width: 40px;
+  height: 40px;
 }
 
 .register-title {
@@ -26,13 +26,12 @@
   font-weight: bold;
 }
 
-
 .register-form {
   background-color: #FFFFFF;
   padding: 25px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 40%; 
+  width: 40%;
   color: #0A47A1;
   display: flex;
   flex-direction: column;
@@ -53,7 +52,7 @@
 }
 
 .column-inputs {
-  width: 50%; 
+  width: 50%;
   align-items: flex-start;
   text-align: left;
 }
@@ -79,16 +78,17 @@
 .current-weight-container {
   align-items: flex-end;
 }
+
 .email-input,
 .username-input,
 .password-input {
-  width: 100%; 
-  padding: 12px; 
+  width: 100%;
+  padding: 12px;
   border: 1px solid #CCCCCC;
   border-radius: 4px;
   color: #333333;
   box-sizing: border-box;
-  font-size: 16px; 
+  font-size: 16px;
 }
 
 .current-weight-input,
@@ -176,7 +176,8 @@
   margin-top: 20px;
 }
 
-.btn-register, .btn-cancel {
+.btn-register,
+.btn-cancel {
   width: 45%;
   padding: 12px 0;
   border: none;
@@ -204,4 +205,39 @@
 
 .btn-cancel:hover {
   background-color: #B71C1C;
+}
+
+@media (max-width: 768px) {
+  .register-form {
+    width: 80%;
+  }
+
+  .form-columns {
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .column-inputs,
+  .column-selects-dataInput {
+    width: 100%;
+    align-items: center;
+  }
+
+  .btn-register,
+  .btn-cancel {
+    width: 100%;
+    margin-top: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-title {
+    font-size: 20px;
+  }
+
+  .btn-register,
+  .btn-cancel {
+    font-size: 14px;
+    padding: 10px 0;
+  }
 }

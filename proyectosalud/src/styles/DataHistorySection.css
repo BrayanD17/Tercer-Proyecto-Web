@@ -32,7 +32,7 @@
 }
 
 .select-period select, .select-graphic select {
-    width: 80%;
+    width: 100%;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -47,6 +47,36 @@
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
-.historical-chart{
-   height: 500px;
+.historical-chart {
+    height: 500px;
+}
+
+@media (max-width: 768px) {
+    .select-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .select-period, .select-graphic {
+        width: 100%;
+    }
+
+    .principal-history-section {
+        padding: 15px;
+    }
+
+    .historical-chart {
+        height: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    .historical-chart {
+        height: 300px;
+    }
+
+    .select-period select, .select-graphic select {
+        font-size: 14px;
+        padding: 8px;
+    }
 }
