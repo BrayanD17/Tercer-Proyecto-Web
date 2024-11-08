@@ -4,17 +4,18 @@ import Chart from "react-apexcharts";
 const ChartMusculo = ({ data, title }) => {
   // Filtrar datos válidos (eliminar NaN y valores infinitos)
   const validData = data.filter(item => !isNaN(item.value) && isFinite(item.value));
+  const cleanData = data.map(value => (isFinite(value) ? value : null));
 
   const seriesData = [
     {
       name: title,
-      data: validData.map(item => (isFinite(item.value) ? item.value : 0)) // Reemplazar infinitos por 0 o un valor por defecto
+      data: validData.map(item => (isFinite(item.value) ? item.value : 0)) 
     },
   ];
 
   const chartOptions = {
     chart: {
-      type: "bar", // Tipo de gráfico, puede cambiarse a 'line' si prefieres
+      type: "area", // Tipo de gráfico, puede cambiarse a 'line' si prefieres
       height: 350,
       zoom: {
         enabled: true,

@@ -62,8 +62,9 @@ const DataHistory = () => {
             <h1>Histórico de datos</h1>
             <div className="select-container">
                 <div className="select-period">
-                    <label htmlFor="periodo">Selecciona el período: </label>
+                    <label htmlFor="periodo">Período </label>
                     <select id="periodo" onChange={(e) => setPeriodo(e.target.value)} value={periodo}>
+                        
                         <option value="1 semana">1 semana</option>
                         <option value="1 mes">1 mes</option>
                         <option value="3 meses">3 meses</option>
@@ -72,7 +73,7 @@ const DataHistory = () => {
                     </select>
                 </div>
                 <div className="select-graphic">
-                    <label htmlFor="tipoGrafico">Selecciona el histórico: </label>
+                    <label htmlFor="tipoGrafico">Histórico </label>
                     <select id="tipoGrafico" onChange={handleTipoGraficoChange} value={tipoGrafico}>
                         <option value="peso">Histórico de peso</option>
                         <option value="musculo">Histórico de músculo</option>
