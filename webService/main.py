@@ -439,57 +439,78 @@ async def obtener_historico(
     # Calcular la fecha de inicio basada en el período
     inicio = calcular_fecha_inicio(periodo)
     hoy = datetime.utcnow()
-    
-    # Consultas SQL específicas según el tipo de dato, filtrando por user_id y agregando solo el resumen
+
+    # Crear un diccionario para almacenar los resultados
+    resultado = {"tipo_dato": tipo_dato, "periodo": periodo, "data": []}
+
+    # Consultas SQL específicas según el tipo de dato
     if tipo_dato == "peso":
-        resultado = db.query(func.avg(Weight.weight).label("promedio_peso")) \
+        # Obtener datos históricos de peso por fecha
+        datos = db.query(Weight.date, Weight.weight) \
             .filter(Weight.date >= inicio, Weight.date <= hoy, Weight.userId == user_id) \
-            .scalar()
-        return {"tipo_dato": "peso", "periodo": periodo, "promedio_peso": resultado}
-    
+            .order_by(Weight.date).all()
+        for fecha, valor in datos:
+            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d"), "value": valor})
+
     elif tipo_dato == "musculo":
-        resultado = db.query(func.avg(BodyComposition.muscle).label("promedio_musculo")) \
+        # Obtener datos históricos de músculo por fecha
+        datos = db.query(BodyComposition.date, BodyComposition.muscle) \
             .filter(BodyComposition.date >= inicio, BodyComposition.date <= hoy, BodyComposition.userId == user_id) \
-            .scalar()
-        return {"tipo_dato": "musculo", "periodo": periodo, "promedio_musculo": resultado}
+            .order_by(BodyComposition.date).all()
+        for fecha, valor in datos:
+            
+            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d"), "value": valor})
 
     elif tipo_dato == "porcentaje_grasa":
-        resultado = db.query(func.avg(BodyFatPercentage.fat_percentage).label("promedio_porcentaje_grasa")) \
+        # Obtener datos históricos de porcentaje de grasa por fecha
+        datos = db.query(BodyFatPercentage.date, BodyFatPercentage.fat_percentage) \
             .filter(BodyFatPercentage.date >= inicio, BodyFatPercentage.date <= hoy, BodyFatPercentage.userId == user_id) \
-            .scalar()
-        return {"tipo_dato": "porcentaje_grasa", "periodo": periodo, "promedio_porcentaje_grasa": resultado}
-    
+            .order_by(BodyFatPercentage.date).all()
+        for fecha, valor in datos:
+            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d"), "value": valor})
+
     elif tipo_dato == "vasos_agua":
-        resultado = db.query(func.sum(WaterConsumption.water_amount).label("total_vasos_agua")) \
+        # Obtener datos históricos de vasos de agua consumidos por fecha
+        datos = db.query(WaterConsumption.date, WaterConsumption.water_amount) \
             .filter(WaterConsumption.date >= inicio, WaterConsumption.date <= hoy, WaterConsumption.userId == user_id) \
-            .scalar()
-        return {"tipo_dato": "vasos_agua", "periodo": periodo, "total_vasos_agua": resultado, "total_litros_agua": resultado * 0.25}
+            .order_by(WaterConsumption.date).all()
+        for fecha, valor in datos:
+            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d"), "value": valor})
+        
+        # Calcular los litros totales de agua
+        total_vasos = sum([valor for _, valor in datos])
+        total_litros = total_vasos * 0.25
+        resultado["total_vasos"] = total_vasos
+        resultado["total_litros"] = total_litros
 
     elif tipo_dato == "pasos":
-        resultado = db.query(func.sum(DailySteps.steps_amount).label("total_pasos")) \
+        # Obtener datos históricos de pasos por fecha
+        datos = db.query(DailySteps.date, DailySteps.steps_amount) \
             .filter(DailySteps.date >= inicio, DailySteps.date <= hoy, DailySteps.userId == user_id) \
-            .scalar()
-        return {"tipo_dato": "pasos", "periodo": periodo, "total_pasos": resultado}
-    
+            .order_by(DailySteps.date).all()
+        for fecha, valor in datos:
+            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d"), "value": valor})
+
     elif tipo_dato == "ejercicios":
-        # Obtener la cantidad total de ejercicios y la duración total en minutos
-        total_ejercicios = db.query(func.count(Exercise.id)).filter(
-            Exercise.date >= inicio, Exercise.date <= hoy, Exercise.userId == user_id
-        ).scalar()
-        
-        total_duracion = db.query(func.sum(Exercise.duration).label("total_duracion_ejercicio")) \
+        # Obtener datos históricos de ejercicios por fecha (con duración total)
+        datos = db.query(Exercise.date, func.count(Exercise.id), func.sum(Exercise.duration)) \
             .filter(Exercise.date >= inicio, Exercise.date <= hoy, Exercise.userId == user_id) \
-            .scalar()
-        
-        return {
-            "tipo_dato": "ejercicios",
-            "periodo": periodo,
-            "total_ejercicios": total_ejercicios,
-            "total_duracion_ejercicio": total_duracion
-        }
-    
+            .group_by(Exercise.date) \
+            .order_by(Exercise.date).all()
+        for fecha, total_ejercicios, total_duracion in datos:
+            resultado["data"].append({
+                "date": fecha.strftime("%Y-%m-%d"),
+                "value": total_ejercicios,  # o "value" puede ser `total_duracion` si prefieres mostrar la duración
+            })
+
+        # Calcular la duración total de ejercicios
+        total_duracion = sum([total_duracion for _, _, total_duracion in datos])
+        resultado["total_duracion_ejercicios"] = total_duracion
+
     else:
         raise HTTPException(status_code=400, detail="Tipo de dato no soportado")
+
+    return resultado
 # Configuración del token
 SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
