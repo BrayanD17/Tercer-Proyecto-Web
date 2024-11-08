@@ -13,6 +13,7 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from typing import Optional, List
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.sql import func
 
 app = FastAPI()
 # Configura CORS
@@ -436,3 +437,52 @@ def actualizar_o_insertar(db: Session, modelo, nuevo_registro):
     else:
         # Si no existe, lo insertamos
         db.add(nuevo_registro)
+
+#ESQUEMAS
+#Definición de esquemas para cada tipo de dato
+class WeightData(BaseModel):
+    weight: float
+    date: datetime
+
+class HeightData(BaseModel):
+    height: float
+    date: datetime
+
+class WaterConsumptionData(BaseModel):
+    waterAmount: float
+    date: datetime
+
+class ExerciseData(BaseModel):
+    exerciseName: str
+    duration: int
+    date: datetime
+
+class DailyStepsData(BaseModel):
+    stepsAmount: int
+    date: datetime
+
+class BodyFatPercentageData(BaseModel):
+    fatPercentage: float
+    date: datetime
+
+class BodyCompositionData(BaseModel):
+    muscle: float
+    fat: float
+    water:float
+    date: datetime
+
+#Esquema principal para la respuesta
+class DashboardData(BaseModel):
+    weights: Optional[WeightData]
+    heights: Optional[HeightData]
+    water_consumptions: Optional[WaterConsumptionData]
+    exercises: Optional[ExerciseData]
+    daily_steps: Optional[DailyStepsData]
+    body_fat_percentages: Optional[BodyFatPercentageData]
+    body_compositions: Optional[BodyCompositionData]
+
+#NECESITO HACER ENPOINT GET, PARA OBTENER LOS DATOS DEL USUARIO LOGEADO, LOS DATOS QUE TENGO QUE OBTENER DEL USUARIO ES EL DATO MAS
+#DE HOY, SI NO TIENE DATOS DE HOY, SE OBTIENEN LOS MAS RECIENTES, PARA FILTRALOS SE DEBE UTILIZAR MAX
+#ADEMAS LOS DATOS QUE SE VAN A RECUPERAR DE LA BASE, ES EL DATO MAS RECIENTE LIGADO AL USUARIO
+#ES DECIR SE OBTIENE SU weights, heights, water_consumptions, exercises, daily_steps, body_fat_percentajes y body_compositions MAS RECIENTE, SI NO HAY UN DATO CON LA FECHA DEL DIA PRESENTE
+#EN CASO DE NO HABER DATOS LA CONSULTA NO DEBE DAR ERROR, SIMPLEMENTE NO LOS ENVIA (NULL) (YA QUE AL INICIAR SESION POR PRIMERA VEZ EL USUARIO EL USUARIO NO VA A TENER DATOS)
