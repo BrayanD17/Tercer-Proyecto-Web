@@ -2,19 +2,15 @@ import io
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_engine, Column, Integer, Float, String, Date, DECIMAL, ForeignKey, Enum,DateTime
+from sqlalchemy import create_engine, Column, Integer, Float, String, DateTime, DECIMAL, ForeignKey, Enum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
-from datetime import datetime, timedelta
-
 import csv
-from pydantic import BaseModel, Field, ConfigDict, EmailStr, validator
+from pydantic import BaseModel, EmailStr, validator, ConfigDict
 from sqlalchemy.exc import IntegrityError
 from passlib.context import CryptContext
 from jose import JWTError, jwt
-from typing import Optional
-from fastapi import Path, Query
+from datetime import datetime, timedelta
 from typing import Optional, List
 from fastapi.security import OAuth2PasswordBearer
 
@@ -51,13 +47,9 @@ SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.datetime.utcnow() + timedelta(minutes=15)
+    expire = datetime.utcnow() + (expires_delta if expires_delta else timedelta(minutes=15))
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -72,9 +64,8 @@ class User(Base):
     birthday = Column(DateTime, nullable=False)
     gender = Column(Enum('Masculino', 'Femenino'), nullable=False)
     current_weight = Column(Float, nullable=False)  
-    current_height = Column(Float, nullable=False)  
+    current_height = Column(Float, nullable=False)
 
-    # Relaciones con las otras tablas (las mantenemos igual)
     weights = relationship("Weight", back_populates="user")
     heights = relationship("Height", back_populates="user")
     body_fat_percentages = relationship("BodyFatPercentage", back_populates="user")
@@ -85,28 +76,28 @@ class User(Base):
 
 class Weight(Base):
     __tablename__ = "weights"
-    date = Column(Date, primary_key=True, default=datetime.today)
+    date = Column(DateTime, primary_key=True)
     userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
     weight = Column(DECIMAL(5, 2))
     user = relationship("User", back_populates="weights")
 
 class Height(Base):
     __tablename__ = "heights"
-    date = Column(Date, primary_key=True, default=datetime.today)
+    date = Column(DateTime, primary_key=True)
     userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
     height = Column(DECIMAL(5, 2))
     user = relationship("User", back_populates="heights")
 
 class BodyFatPercentage(Base):
     __tablename__ = "body_fat_percentages"
-    date = Column(Date, primary_key=True, default=datetime.today)
+    date = Column(DateTime, primary_key=True)  # Usa datetime.utcnow
     userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
     fat_percentage = Column(DECIMAL(5, 2))
     user = relationship("User", back_populates="body_fat_percentages")
 
 class BodyComposition(Base):
     __tablename__ = "body_compositions"
-    date = Column(Date, primary_key=True, default=datetime.today)
+    date = Column(DateTime, primary_key=True)  # Usa datetime.utcnow
     userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
     fat = Column(DECIMAL(5, 2))
     muscle = Column(DECIMAL(5, 2))
@@ -115,36 +106,35 @@ class BodyComposition(Base):
 
 class WaterConsumption(Base):
     __tablename__ = "water_consumptions"
-    date = Column(Date, primary_key=True, default=datetime.today)
+    date = Column(DateTime, primary_key=True)  # Usa datetime.utcnow
     userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
     water_amount = Column(DECIMAL(5, 2))
     user = relationship("User", back_populates="water_consumptions")
 
 class DailySteps(Base):
     __tablename__ = "daily_steps"
-    date = Column(Date, primary_key=True, default=datetime.today)
+    date = Column(DateTime, primary_key=True)  # Usa datetime.utcnow
     userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
     steps_amount = Column(Integer)
     user = relationship("User", back_populates="daily_steps")
 
 class Exercise(Base):
     __tablename__ = "exercises"
-    date = Column(Date, primary_key=True, default=datetime.today)
+    date = Column(DateTime, primary_key=True)  # Usa datetime.utcnow
     userId = Column(Integer, ForeignKey('users.id'), primary_key=True)
     exercise_name = Column(String)
     duration = Column(Integer)
     user = relationship("User", back_populates="exercises")
-
+    
 # Crear las tablas
 Base.metadata.create_all(bind=engine)
-
 
 # Modelo de solicitud
 class RegisterUserRequest(BaseModel):
     email: str
     username: str
     password: str
-    birthday: datetime.datetime
+    birthday: datetime
     gender: str
     current_weight: float
     current_height: float
@@ -156,25 +146,23 @@ class LoginRequest(BaseModel):
 class UserProfileResponse(BaseModel):
     email: str
     username: str
-    birthday: datetime.datetime
+    birthday: datetime
     gender: str
     current_weight: float
     current_height: float
 
-class UserProfileUpdateRequest(BaseModel):
-    email: str | None = None
-    username: str | None = None
-    birthday: datetime.datetime | None = None
-    gender: str | None = None
-    current_weight: float | None = None
-    current_height: float | None = None
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+class UserProfileResponse(BaseModel):
+    email: str
+    username: str
+    birthday: datetime
+    gender: str
+    current_weight: float
+    current_height: float
 
 class UserUpdateRequest(BaseModel):
     email: Optional[EmailStr] = None
     username: Optional[str] = None
-    birthday: Optional[datetime.datetime] = None  # Específico como datetime.datetime
+    birthday: Optional[datetime] = None 
     gender: Optional[str] = None
     current_weight: Optional[float] = None
     current_height: Optional[float] = None
@@ -231,7 +219,7 @@ async def register_user(user: RegisterUserRequest, db: Session = Depends(get_db)
         return {"message": "Usuario registrado con éxito"}
     except IntegrityError as e:
         db.rollback()
-        raise HTTPException(status_code=400, detail="El correo electrónico o nombre de usuario ya está registrado")
+        raise HTTPException(status_code=400, detail="El nombre de usuario ya está registrado")
 
 @app.get("/users/", response_model=List[str])
 async def get_all_usernames(db: Session = Depends(get_db)):
@@ -264,12 +252,18 @@ async def update_user_field(
     update_data: UserUpdateRequest,
     db: Session = Depends(get_db)
 ):
-    # Buscar el usuario en la base de datos
     user = db.query(User).filter(User.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-    # Validar y actualizar cada campo individualmente
+    if update_data.birthday:
+        if isinstance(update_data.birthday, str):
+            try:
+                update_data.birthday = datetime.fromisoformat(update_data.birthday)
+            except ValueError:
+                raise HTTPException(status_code=422, detail="Formato de fecha incorrecto, esperado YYYY-MM-DDTHH:MM:SS")
+        user.birthday = update_data.birthday
+
     if update_data.email:
         user.email = update_data.email
     if update_data.username:
@@ -277,18 +271,13 @@ async def update_user_field(
         if existing_user:
             raise HTTPException(status_code=400, detail="El nombre de usuario ya está en uso")
         user.username = update_data.username
-    if update_data.birthday:
-        user.birthday = update_data.birthday
     if update_data.gender:
-        if update_data.gender not in ["Masculino", "Femenino"]:
-            raise HTTPException(status_code=400, detail="El género debe ser Masculino o Femenino")
         user.gender = update_data.gender
     if update_data.current_weight is not None:
         user.current_weight = update_data.current_weight
     if update_data.current_height is not None:
         user.current_height = update_data.current_height
 
-    # Guardar cambios en la base de datos
     try:
         db.commit()
         db.refresh(user)
@@ -296,7 +285,7 @@ async def update_user_field(
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=400, detail="Error al actualizar el perfil")
-
+    
 @app.post("/user/{username}/change-password")
 async def change_password(
     username: str,
@@ -348,7 +337,7 @@ async def importar_sensores(
         if tipo_dato == "pesos":
             for fila in lector:
                 fecha, peso = fila
-                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
+                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
                 peso = float(peso)
                 nuevo_peso = Weight(date=fecha, weight=peso, userId=user_id) 
                 actualizar_o_insertar(db, Weight, nuevo_peso)
@@ -356,7 +345,7 @@ async def importar_sensores(
         elif tipo_dato == "alturas":
             for fila in lector:
                 fecha, altura = fila
-                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
+                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
                 altura = float(altura)
                 nueva_altura = Height(date=fecha, height=altura, userId=user_id)
                 actualizar_o_insertar(db, Height, nueva_altura)
@@ -364,7 +353,7 @@ async def importar_sensores(
         elif tipo_dato == "composicion_corporal":
             for fila in lector:
                 fecha, grasa, musculo, agua = fila
-                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
+                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
                 grasa = float(grasa)
                 musculo = float(musculo)
                 agua = float(agua)
@@ -374,14 +363,14 @@ async def importar_sensores(
         elif tipo_dato == "porcentaje_grasa":
             for fila in lector:
                 fecha, porcentaje_grasa = fila
-                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
+                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
                 porcentaje_grasa = float(porcentaje_grasa)
                 nuevo_porcentaje_grasa = BodyFatPercentage(date=fecha, fat_percentage=porcentaje_grasa,userId=user_id)
                 actualizar_o_insertar(db, BodyFatPercentage, nuevo_porcentaje_grasa)
         elif tipo_dato == "vasos_de_agua":
             for fila in lector:
                 fecha, vasos_agua = fila
-                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()  # Usar la fecha del archivo
+                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()  # Usar la fecha del archivo
                 vasos_agua = int(vasos_agua)
                 nuevo_consumo_agua = WaterConsumption(date=fecha, water_amount=vasos_agua, userId=user_id)
                 actualizar_o_insertar(db, WaterConsumption, nuevo_consumo_agua)
@@ -389,7 +378,7 @@ async def importar_sensores(
         elif tipo_dato == "pasos_diarios":
             for fila in lector:
                 fecha, cantidad_pasos = fila
-                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()  # Usar la fecha del archivo
+                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()  # Usar la fecha del archivo
                 cantidad_pasos = int(cantidad_pasos)
                 nuevos_pasos = DailySteps(date=fecha, steps_amount=cantidad_pasos, userId=user_id)
                 actualizar_o_insertar(db, DailySteps, nuevos_pasos)
@@ -397,7 +386,7 @@ async def importar_sensores(
         elif tipo_dato == "ejercicios":
             for fila in lector:
                 fecha, nombre_ejercicio, duracion = fila
-                fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
+                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
                 duracion = int(duracion)
                 nuevo_ejercicio = Exercise(date=fecha, exercise_name=nombre_ejercicio, duration=duracion, userId=user_id)
                 actualizar_o_insertar(db, Exercise, nuevo_ejercicio)
@@ -412,83 +401,62 @@ async def importar_sensores(
         db.rollback()
         raise HTTPException(status_code=400, detail=f"Error al importar datos: {e}")
 
-
+# Endpoint para obtener el histórico de datos
 @app.get("/historico_datos/")
 async def obtener_historico_datos(
-    tipo_dato: str = Query(..., description="Tipo de dato a consultar (pesos, alturas, grasa_corporal, pasos)"),
-    periodo: str = Query(..., description="Período de tiempo (1 semana, 1 mes, 3 meses, 6 meses, 1 año)"),
-    db: Session = Depends(get_db),
+    tipo_dato: str, 
+    periodo: str, 
+    db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user)
 ):
-    user_id = current_user.id  # ID del usuario autenticado
-
-    # Determina la fecha de inicio en función del período
-    hoy = datetime.now().date()
+    # Calcula la fecha inicial basada en el periodo
+    hoy = datetime.today()
     if periodo == "1 semana":
-        fecha_inicio = hoy - timedelta(weeks=1)
-        agregacion = func.avg  # Agregación semanal (promedio)
+        fecha_inicial = hoy - timedelta(weeks=1)
     elif periodo == "1 mes":
-        fecha_inicio = hoy - timedelta(days=30)
-        agregacion = func.avg  # Agregación mensual (promedio)
+        fecha_inicial = hoy - timedelta(days=30)
     elif periodo == "3 meses":
-        fecha_inicio = hoy - timedelta(days=90)
-        agregacion = func.avg  # Agregación trimestral (promedio)
+        fecha_inicial = hoy - timedelta(days=90)
     elif periodo == "6 meses":
-        fecha_inicio = hoy - timedelta(days=180)
-        agregacion = func.avg  # Agregación semestral (promedio)
+        fecha_inicial = hoy - timedelta(days=180)
     elif periodo == "1 año":
-        fecha_inicio = hoy - timedelta(days=365)
-        agregacion = func.avg  # Agregación anual (promedio)
+        fecha_inicial = hoy - timedelta(days=365)
     else:
-        raise HTTPException(status_code=400, detail="Período no válido")
+        raise HTTPException(status_code=400, detail="Periodo no válido")
 
-    # Filtra los datos según el tipo y aplica agregación
+    # Consulta los datos en función del tipo de dato y el periodo
     try:
-        if tipo_dato == "pesos":
-            resultados = (
-                db.query(agregacion(Weight.weight).label("promedio_peso"), Weight.date)
-                .filter(Weight.userId == user_id, Weight.date >= fecha_inicio)
-                .group_by(Weight.date)
-                .all()
-            )
-
-        elif tipo_dato == "alturas":
-            resultados = (
-                db.query(agregacion(Height.height).label("promedio_altura"), Height.date)
-                .filter(Height.userId == user_id, Height.date >= fecha_inicio)
-                .group_by(Height.date)
-                .all()
-            )
-
+        if tipo_dato == "peso":
+            datos = db.query(func.avg(Weight.weight).label("peso_promedio"), Weight.date)\
+                .filter(Weight.userId == current_user.id, Weight.date >= fecha_inicial)\
+                .group_by(Weight.date).all()
+        elif tipo_dato == "musculo":
+            datos = db.query(func.avg(BodyComposition.muscle).label("musculo_promedio"), BodyComposition.date)\
+                .filter(BodyComposition.userId == current_user.id, BodyComposition.date >= fecha_inicial)\
+                .group_by(BodyComposition.date).all()
         elif tipo_dato == "grasa_corporal":
-            resultados = (
-                db.query(agregacion(BodyFatPercentage.fat_percentage).label("promedio_grasa"), BodyFatPercentage.date)
-                .filter(BodyFatPercentage.userId == user_id, BodyFatPercentage.date >= fecha_inicio)
-                .group_by(BodyFatPercentage.date)
-                .all()
-            )
-
+            datos = db.query(func.avg(BodyFatPercentage.fat_percentage).label("grasa_promedio"), BodyFatPercentage.date)\
+                .filter(BodyFatPercentage.userId == current_user.id, BodyFatPercentage.date >= fecha_inicial)\
+                .group_by(BodyFatPercentage.date).all()
+        elif tipo_dato == "agua":
+            datos = db.query(func.sum(WaterConsumption.water_amount).label("total_agua"), WaterConsumption.date)\
+                .filter(WaterConsumption.userId == current_user.id, WaterConsumption.date >= fecha_inicial)\
+                .group_by(WaterConsumption.date).all()
         elif tipo_dato == "pasos":
-            resultados = (
-                db.query(func.sum(DailySteps.steps_amount).label("total_pasos"), DailySteps.date)
-                .filter(DailySteps.userId == user_id, DailySteps.date >= fecha_inicio)
-                .group_by(DailySteps.date)
-                .all()
-            )
-
+            datos = db.query(func.sum(DailySteps.steps_amount).label("total_pasos"), DailySteps.date)\
+                .filter(DailySteps.userId == current_user.id, DailySteps.date >= fecha_inicial)\
+                .group_by(DailySteps.date).all()
+        elif tipo_dato == "ejercicio":
+            datos = db.query(func.sum(Exercise.duration).label("duracion_total"), Exercise.date)\
+                .filter(Exercise.userId == current_user.id, Exercise.date >= fecha_inicial)\
+                .group_by(Exercise.date).all()
         else:
-            raise HTTPException(status_code=400, detail="Tipo de dato no válido")
+            raise HTTPException(status_code=400, detail="Tipo de dato no soportado")
 
-        # Formatea los resultados para devolver al cliente
-        respuesta = [
-            {"fecha": resultado.date, "valor": resultado[0]} for resultado in resultados
-        ]
-
-        return {"datos": respuesta}
+        return {"data": datos}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al procesar la consulta: {str(e)}")
-
+        raise HTTPException(status_code=500, detail=f"Error al obtener datos históricos: {str(e)}")
 # Configuración del token
 SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
@@ -497,9 +465,9 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.datetime.utcnow() + expires_delta
+        expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
