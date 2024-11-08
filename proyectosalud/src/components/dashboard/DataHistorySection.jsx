@@ -78,13 +78,21 @@ const DataHistory = () => {
                 {/* Verifica que los datos existan y luego pasa los datos al gráfico */}
                 {historicalData.length > 0 && (
                     <ChartHistorical 
-                        data={historicalData} 
-                        tipo={tipoGrafico === "peso" ? "bar" : tipoGrafico === "musculo" ? "area" : tipoGrafico === "grasa" ? "line" : "bar"}
-                        title={`Gráfico de ${tipoGrafico} durante ${periodo}`} 
-                    />
+                    data={historicalData} 
+                    tipo={
+                        tipoGrafico === "peso" ? "bar" :
+                        tipoGrafico === "musculo" ? "area" :
+                        tipoGrafico === "grasa" ? "line" :
+                        tipoGrafico === "agua" ? "line" :
+                        tipoGrafico === "pasos" ? "area" : 
+                        tipoGrafico === "ejercicio" ? "area" : "line"
+                    }
+                    title={`Gráfico de ${tipoGrafico} durante ${periodo}`} 
+                />
                 )}
             </div>
-        </div>
+            </div>
+        
     );
 };
 

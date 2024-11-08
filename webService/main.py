@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from typing import Optional, List
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import func
-
+from decimal import Decimal
 app = FastAPI()
 # Configura CORS
 app.add_middleware(
@@ -450,7 +450,7 @@ async def obtener_historico(
             .filter(Weight.date >= inicio, Weight.date <= hoy, Weight.userId == user_id) \
             .order_by(Weight.date).all()
         for fecha, valor in datos:
-            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d"), "value": valor})
+            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d %H:%M:%S"), "value": valor})
 
     elif tipo_dato == "musculo":
         # Obtener datos históricos de músculo por fecha
@@ -459,27 +459,27 @@ async def obtener_historico(
             .order_by(BodyComposition.date).all()
         for fecha, valor in datos:
             
-            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d"), "value": valor})
+            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d %H:%M:%S"), "value": valor})
 
-    elif tipo_dato == "porcentaje_grasa":
+    elif tipo_dato == "grasa":
         # Obtener datos históricos de porcentaje de grasa por fecha
         datos = db.query(BodyFatPercentage.date, BodyFatPercentage.fat_percentage) \
             .filter(BodyFatPercentage.date >= inicio, BodyFatPercentage.date <= hoy, BodyFatPercentage.userId == user_id) \
             .order_by(BodyFatPercentage.date).all()
         for fecha, valor in datos:
-            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d"), "value": valor})
+            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d %H:%M:%S"), "value": valor})
 
-    elif tipo_dato == "vasos_agua":
+    elif tipo_dato == "agua":
         # Obtener datos históricos de vasos de agua consumidos por fecha
         datos = db.query(WaterConsumption.date, WaterConsumption.water_amount) \
             .filter(WaterConsumption.date >= inicio, WaterConsumption.date <= hoy, WaterConsumption.userId == user_id) \
             .order_by(WaterConsumption.date).all()
         for fecha, valor in datos:
-            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d"), "value": valor})
+            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d %H:%M:%S"), "value": valor})
         
         # Calcular los litros totales de agua
         total_vasos = sum([valor for _, valor in datos])
-        total_litros = total_vasos * 0.25
+        total_litros = total_vasos * Decimal("0.25")
         resultado["total_vasos"] = total_vasos
         resultado["total_litros"] = total_litros
 
@@ -489,23 +489,26 @@ async def obtener_historico(
             .filter(DailySteps.date >= inicio, DailySteps.date <= hoy, DailySteps.userId == user_id) \
             .order_by(DailySteps.date).all()
         for fecha, valor in datos:
-            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d"), "value": valor})
+            resultado["data"].append({"date": fecha.strftime("%Y-%m-%d %H:%M:%S"), "value": valor})
 
-    elif tipo_dato == "ejercicios":
+    elif tipo_dato == "ejercicio":
         # Obtener datos históricos de ejercicios por fecha (con duración total)
-        datos = db.query(Exercise.date, func.count(Exercise.id), func.sum(Exercise.duration)) \
+        datos = db.query(Exercise.date, func.count(Exercise.exercise_name), func.sum(Exercise.duration)) \
             .filter(Exercise.date >= inicio, Exercise.date <= hoy, Exercise.userId == user_id) \
             .group_by(Exercise.date) \
             .order_by(Exercise.date).all()
+
+        # Almacenar los datos en el resultado
         for fecha, total_ejercicios, total_duracion in datos:
             resultado["data"].append({
-                "date": fecha.strftime("%Y-%m-%d"),
-                "value": total_ejercicios,  # o "value" puede ser `total_duracion` si prefieres mostrar la duración
+                "date": fecha.strftime("%Y-%m-%d %H:%M:%S"),
+                "value": total_ejercicios,  
             })
 
         # Calcular la duración total de ejercicios
-        total_duracion = sum([total_duracion for _, _, total_duracion in datos])
-        resultado["total_duracion_ejercicios"] = total_duracion
+        total_duracion_ejercicios = sum([total_duracion for _, _, total_duracion in datos])
+        resultado["total_duracion_ejercicios"] = total_duracion_ejercicios
+
 
     else:
         raise HTTPException(status_code=400, detail="Tipo de dato no soportado")
