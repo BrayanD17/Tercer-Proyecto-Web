@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useContext } from "react";
 import "../../styles/DataHistorySection.css";
-import ChartHistorical from "../graphics/ChartHistorical";
+import ChartPeso from "../graphics/ChartPeso";
+import ChartMusculo from "../graphics/ChartMusculo";
+import ChartGrasa from "../graphics/ChartGrasa";
+import ChartAgua from "../graphics/ChartAgua";
+import ChartPasos from "../graphics/ChartPasos";
+import ChartEjercicio from "../graphics/ChartEjercicio";
 import { AuthContext } from "../../context/AuthContext";
 
 const DataHistory = () => {
@@ -77,22 +82,18 @@ const DataHistory = () => {
             <div className="historical-chart">
                 {/* Verifica que los datos existan y luego pasa los datos al gráfico */}
                 {historicalData.length > 0 && (
-                    <ChartHistorical 
-                    data={historicalData} 
-                    tipo={
-                        tipoGrafico === "peso" ? "bar" :
-                        tipoGrafico === "musculo" ? "area" :
-                        tipoGrafico === "grasa" ? "line" :
-                        tipoGrafico === "agua" ? "line" :
-                        tipoGrafico === "pasos" ? "area" : 
-                        tipoGrafico === "ejercicio" ? "area" : "line"
-                    }
-                    title={`Gráfico de ${tipoGrafico} durante ${periodo}`} 
-                />
+                    // Condicionalmente renderizamos el componente adecuado
+                    <>
+                        {tipoGrafico === "peso" && <ChartPeso data={historicalData} title={`Gráfico de ${tipoGrafico} durante ${periodo}`} />}
+                        {tipoGrafico === "musculo" && <ChartMusculo data={historicalData} title={`Gráfico de ${tipoGrafico} durante ${periodo}`} />}
+                        {tipoGrafico === "grasa" && <ChartGrasa data={historicalData} title={`Gráfico de ${tipoGrafico} durante ${periodo}`} />}
+                        {tipoGrafico === "agua" && <ChartAgua data={historicalData} title={`Gráfico de ${tipoGrafico} durante ${periodo}`} />}
+                        {tipoGrafico === "pasos" && <ChartPasos data={historicalData} title={`Gráfico de ${tipoGrafico} durante ${periodo}`} />}
+                        {tipoGrafico === "ejercicio" && <ChartEjercicio data={historicalData} title={`Gráfico de ${tipoGrafico} durante ${periodo}`} />}
+                    </>
                 )}
             </div>
-            </div>
-        
+        </div>
     );
 };
 

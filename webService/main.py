@@ -380,7 +380,7 @@ async def importar_sensores(
         elif tipo_dato == "vasos_de_agua":
             for fila in lector:
                 fecha, vasos_agua = fila
-                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S") # Usar la fecha del archivo
+                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")
                 vasos_agua = int(vasos_agua)
                 nuevo_consumo_agua = WaterConsumption(date=fecha, water_amount=vasos_agua, userId=user_id)
                 actualizar_o_insertar(db, WaterConsumption, nuevo_consumo_agua)
@@ -388,7 +388,7 @@ async def importar_sensores(
         elif tipo_dato == "pasos_diarios":
             for fila in lector:
                 fecha, cantidad_pasos = fila
-                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")# Usar la fecha del archivo
+                fecha = datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S")
                 cantidad_pasos = int(cantidad_pasos)
                 nuevos_pasos = DailySteps(date=fecha, steps_amount=cantidad_pasos, userId=user_id)
                 actualizar_o_insertar(db, DailySteps, nuevos_pasos)
@@ -492,7 +492,7 @@ async def obtener_historico(
             resultado["data"].append({"date": fecha.strftime("%Y-%m-%d %H:%M:%S"), "value": valor})
 
     elif tipo_dato == "ejercicio":
-        # Obtener datos históricos de ejercicios por fecha (con duración total)
+        # Obtener datos históricos de ejercicios por fecha (con cantidad total y duración total)
         datos = db.query(Exercise.date, func.count(Exercise.exercise_name), func.sum(Exercise.duration)) \
             .filter(Exercise.date >= inicio, Exercise.date <= hoy, Exercise.userId == user_id) \
             .group_by(Exercise.date) \
@@ -502,13 +502,17 @@ async def obtener_historico(
         for fecha, total_ejercicios, total_duracion in datos:
             resultado["data"].append({
                 "date": fecha.strftime("%Y-%m-%d %H:%M:%S"),
-                "value": total_ejercicios,  
+                "value": total_duracion,  # Duración total de ejercicios por fecha (en minutos)
+                "cantidad": total_ejercicios  # Cantidad total de ejercicios realizados en la fecha
             })
 
-        # Calcular la duración total de ejercicios
+        # Calcular la duración total de ejercicios en todo el periodo
         total_duracion_ejercicios = sum([total_duracion for _, _, total_duracion in datos])
         resultado["total_duracion_ejercicios"] = total_duracion_ejercicios
 
+        # Calcular la cantidad total de ejercicios en todo el periodo
+        total_cantidad_ejercicios = sum([total_ejercicios for _, total_ejercicios, _ in datos])
+        resultado["total_cantidad_ejercicios"] = total_cantidad_ejercicios
 
     else:
         raise HTTPException(status_code=400, detail="Tipo de dato no soportado")
