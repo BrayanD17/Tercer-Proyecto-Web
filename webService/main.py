@@ -13,6 +13,8 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from typing import Optional, List
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy import func
+
 app = FastAPI()
 # Configura CORS
 app.add_middleware(
@@ -409,6 +411,85 @@ async def importar_sensores(
         db.rollback()
         raise HTTPException(status_code=400, detail=f"Error al importar datos: {e}")
 
+# Función para calcular la fecha de inicio basada en el período
+def calcular_fecha_inicio(periodo: str) -> datetime:
+    hoy = datetime.utcnow()
+    if periodo == "1 semana":
+        return hoy - timedelta(weeks=1)
+    elif periodo == "1 mes":
+        return hoy - timedelta(days=30)
+    elif periodo == "3 meses":
+        return hoy - timedelta(days=90)
+    elif periodo == "6 meses":
+        return hoy - timedelta(days=180)
+    elif periodo == "1 año":
+        return hoy - timedelta(days=365)
+    else:
+        raise HTTPException(status_code=400, detail="Período no soportado")
+
+@app.get("/historico/")
+async def obtener_historico(
+    tipo_dato: str,
+    periodo: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)  # Obtener el usuario autenticado
+):
+    # Obtener el ID del usuario autenticado
+    user_id = current_user.id
+    # Calcular la fecha de inicio basada en el período
+    inicio = calcular_fecha_inicio(periodo)
+    hoy = datetime.utcnow()
+    
+    # Consultas SQL específicas según el tipo de dato, filtrando por user_id y agregando solo el resumen
+    if tipo_dato == "peso":
+        resultado = db.query(func.avg(Weight.weight).label("promedio_peso")) \
+            .filter(Weight.date >= inicio, Weight.date <= hoy, Weight.userId == user_id) \
+            .scalar()
+        return {"tipo_dato": "peso", "periodo": periodo, "promedio_peso": resultado}
+    
+    elif tipo_dato == "musculo":
+        resultado = db.query(func.avg(BodyComposition.muscle).label("promedio_musculo")) \
+            .filter(BodyComposition.date >= inicio, BodyComposition.date <= hoy, BodyComposition.userId == user_id) \
+            .scalar()
+        return {"tipo_dato": "musculo", "periodo": periodo, "promedio_musculo": resultado}
+
+    elif tipo_dato == "porcentaje_grasa":
+        resultado = db.query(func.avg(BodyFatPercentage.fat_percentage).label("promedio_porcentaje_grasa")) \
+            .filter(BodyFatPercentage.date >= inicio, BodyFatPercentage.date <= hoy, BodyFatPercentage.userId == user_id) \
+            .scalar()
+        return {"tipo_dato": "porcentaje_grasa", "periodo": periodo, "promedio_porcentaje_grasa": resultado}
+    
+    elif tipo_dato == "vasos_agua":
+        resultado = db.query(func.sum(WaterConsumption.water_amount).label("total_vasos_agua")) \
+            .filter(WaterConsumption.date >= inicio, WaterConsumption.date <= hoy, WaterConsumption.userId == user_id) \
+            .scalar()
+        return {"tipo_dato": "vasos_agua", "periodo": periodo, "total_vasos_agua": resultado, "total_litros_agua": resultado * 0.25}
+
+    elif tipo_dato == "pasos":
+        resultado = db.query(func.sum(DailySteps.steps_amount).label("total_pasos")) \
+            .filter(DailySteps.date >= inicio, DailySteps.date <= hoy, DailySteps.userId == user_id) \
+            .scalar()
+        return {"tipo_dato": "pasos", "periodo": periodo, "total_pasos": resultado}
+    
+    elif tipo_dato == "ejercicios":
+        # Obtener la cantidad total de ejercicios y la duración total en minutos
+        total_ejercicios = db.query(func.count(Exercise.id)).filter(
+            Exercise.date >= inicio, Exercise.date <= hoy, Exercise.userId == user_id
+        ).scalar()
+        
+        total_duracion = db.query(func.sum(Exercise.duration).label("total_duracion_ejercicio")) \
+            .filter(Exercise.date >= inicio, Exercise.date <= hoy, Exercise.userId == user_id) \
+            .scalar()
+        
+        return {
+            "tipo_dato": "ejercicios",
+            "periodo": periodo,
+            "total_ejercicios": total_ejercicios,
+            "total_duracion_ejercicio": total_duracion
+        }
+    
+    else:
+        raise HTTPException(status_code=400, detail="Tipo de dato no soportado")
 # Configuración del token
 SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
