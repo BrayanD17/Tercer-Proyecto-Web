@@ -21,6 +21,7 @@ const ImportDataForm = ({ onCancel }) => {
   const handleFileChange = (event) => {
     setArchivo(event.target.files[0]);
   };
+  const user_id = localStorage.getItem("user_id");  // Obtener el user_id guardado
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -29,15 +30,16 @@ const ImportDataForm = ({ onCancel }) => {
       setMensaje('Por favor, selecciona un tipo de dato y un archivo.');
       return;
     }
-
+    const token = localStorage.getItem("token");
     const formData = new FormData();
     formData.append('tipo_dato', tipoDato);
     formData.append('archivo', archivo);
-
+    formData.append('user_id', user_id);  
     try {
       const response = await axios.post('http://localhost:8000/importar_sensores/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`,
         },
       });
 

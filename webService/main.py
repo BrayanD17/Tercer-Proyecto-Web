@@ -16,6 +16,7 @@ from datetime import timedelta
 from typing import Optional
 from fastapi import Path, Query
 from typing import Optional, List
+from fastapi.security import OAuth2PasswordBearer
 
 app = FastAPI()
 # Configura CORS
@@ -186,6 +187,27 @@ class UserUpdateRequest(BaseModel):
 class PasswordChangeRequest(BaseModel):
     current_password: str
     new_password: str
+    
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/")
+
+# Función para obtener el usuario actual a partir del token
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=401, detail="Could not validate credentials"
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = db.query(User).filter(User.username == username).first()
+    if user is None:
+        raise credentials_exception
+    return user
+
 
 # Endpoints
 @app.post("/register/")
@@ -222,7 +244,7 @@ async def login(user: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Credenciales incorrectas")
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(data={"sub": db_user.username}, expires_delta=access_token_expires)
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "user_id": db_user.id} 
 
 @app.post("/logout/")
 async def logout():
@@ -307,10 +329,13 @@ async def change_password(
 # Servicio para importar datos de sensores
 @app.post("/importar_sensores/")
 async def importar_sensores(
-    tipo_dato: str = Form(...),  # Acepta tipo_dato desde un formulario
-    archivo: UploadFile = File(...),  # Recibe archivo como parte de FormData
-    db: Session = Depends(get_db)
+    tipo_dato: str = Form(...),
+    archivo: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)  # Obtiene el usuario autenticado
 ):
+    user_id = current_user.id  # ID del usuario autenticado
+
     try:
         # Leer el archivo CSV
         contenido = await archivo.read()
@@ -324,7 +349,7 @@ async def importar_sensores(
                 fecha, peso = fila
                 fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
                 peso = float(peso)
-                nuevo_peso = Weight(date=fecha, weight=peso, userId=1)  # Ejemplo: asignar el ID de usuario 1
+                nuevo_peso = Weight(date=fecha, weight=peso, userId=user_id) 
                 actualizar_o_insertar(db, Weight, nuevo_peso)
 
         elif tipo_dato == "alturas":
@@ -332,7 +357,7 @@ async def importar_sensores(
                 fecha, altura = fila
                 fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
                 altura = float(altura)
-                nueva_altura = Height(date=fecha, height=altura, userId=1)
+                nueva_altura = Height(date=fecha, height=altura, userId=user_id)
                 actualizar_o_insertar(db, Height, nueva_altura)
 
         elif tipo_dato == "composicion_corporal":
@@ -342,7 +367,7 @@ async def importar_sensores(
                 grasa = float(grasa)
                 musculo = float(musculo)
                 agua = float(agua)
-                nueva_composicion = BodyComposition(date=fecha, fat=grasa, muscle=musculo, water=agua, userId=1)
+                nueva_composicion = BodyComposition(date=fecha, fat=grasa, muscle=musculo, water=agua, userId=user_id)
                 actualizar_o_insertar(db, BodyComposition, nueva_composicion)
 
         elif tipo_dato == "porcentaje_grasa":
@@ -350,14 +375,14 @@ async def importar_sensores(
                 fecha, porcentaje_grasa = fila
                 fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
                 porcentaje_grasa = float(porcentaje_grasa)
-                nuevo_porcentaje_grasa = BodyFatPercentage(date=fecha, fat_percentage=porcentaje_grasa, userId=1)
+                nuevo_porcentaje_grasa = BodyFatPercentage(date=fecha, fat_percentage=porcentaje_grasa,userId=user_id)
                 actualizar_o_insertar(db, BodyFatPercentage, nuevo_porcentaje_grasa)
         elif tipo_dato == "vasos_de_agua":
             for fila in lector:
                 fecha, vasos_agua = fila
                 fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()  # Usar la fecha del archivo
                 vasos_agua = int(vasos_agua)
-                nuevo_consumo_agua = WaterConsumption(date=fecha, water_amount=vasos_agua, userId=1)
+                nuevo_consumo_agua = WaterConsumption(date=fecha, water_amount=vasos_agua, userId=user_id)
                 actualizar_o_insertar(db, WaterConsumption, nuevo_consumo_agua)
 
         elif tipo_dato == "pasos_diarios":
@@ -365,7 +390,7 @@ async def importar_sensores(
                 fecha, cantidad_pasos = fila
                 fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()  # Usar la fecha del archivo
                 cantidad_pasos = int(cantidad_pasos)
-                nuevos_pasos = DailySteps(date=fecha, steps_amount=cantidad_pasos, userId=1)
+                nuevos_pasos = DailySteps(date=fecha, steps_amount=cantidad_pasos, userId=user_id)
                 actualizar_o_insertar(db, DailySteps, nuevos_pasos)
 
         elif tipo_dato == "ejercicios":
@@ -373,7 +398,7 @@ async def importar_sensores(
                 fecha, nombre_ejercicio, duracion = fila
                 fecha = datetime.datetime.strptime(fecha, "%Y-%m-%d %H:%M:%S").date()
                 duracion = int(duracion)
-                nuevo_ejercicio = Exercise(date=fecha, exercise_name=nombre_ejercicio, duration=duracion, userId=1)
+                nuevo_ejercicio = Exercise(date=fecha, exercise_name=nombre_ejercicio, duration=duracion, userId=user_id)
                 actualizar_o_insertar(db, Exercise, nuevo_ejercicio)
 
         else:
