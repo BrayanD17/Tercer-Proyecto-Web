@@ -173,6 +173,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const getUserData = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/user/data/", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        return await response.json();
+      } else {
+        throw new Error("Error al obtener los datos del usuario");
+      }
+    } catch (error) {
+      console.error("Error en getUserData:", error);
+      return null;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       token, 
@@ -184,6 +203,7 @@ export const AuthProvider = ({ children }) => {
       updateUserField,
       changePassword, 
       logout :logoutUser,
+      getUserData,
     }}>
       {children}
     </AuthContext.Provider>

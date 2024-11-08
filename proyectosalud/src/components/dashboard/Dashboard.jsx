@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import '../../styles/Dashboard.css';
 import Scorecard from "../graphics/Scorecard";
 import GlassChart from "../graphics/GlassChart";
@@ -8,8 +8,26 @@ import ExerciseTable from "./Exercise";
 import IMCChart from "../graphics/IMCChart";
 import HeightChart from "../graphics/HeightChart";
 import DataHistory from "./DataHistorySection";
+import { AuthContext } from "../../context/AuthContext";
 
 const Dashboard =()=>{
+    const { getUserData } = useContext(AuthContext);
+    const [userData, setUserData] = useState(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const data = await getUserData();
+            if (data) {
+                setUserData(data);
+            }
+        };
+        fetchData();
+    }, [getUserData]);
+
+    if (!userData) {
+        return <div>Cargando datos...</div>;
+    }
+
     const exercisesData = [ 
         { name: "Correr", duration: 30 },
         { name: "Flexiones", duration: 15 },
@@ -22,7 +40,7 @@ const Dashboard =()=>{
                 <div className="izquierda">
                     <div className="weights-container"> 
                         <div className="content">
-                            <Scorecard peso={45} unit="kg" fillColor="#1E90FF" title="Peso" />
+                            <Scorecard peso={userData.weight} unit="kg" fillColor="#1E90FF" title="Peso" />
                         </div>
                     </div>
                     <div className="body-pat-percentaje-container">
@@ -48,7 +66,7 @@ const Dashboard =()=>{
                 </div>
                 <div className="derecha">
                     <div className="heights-container">
-                        <HeightChart altura={158} />
+                        <HeightChart altura={userData.height} />
                     </div>  
                     <div className="IMC-conteiner">
                         <IMCChart peso={45} altura={1.58} />

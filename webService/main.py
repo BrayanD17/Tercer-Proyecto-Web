@@ -2,7 +2,8 @@ import io
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, Column, Integer, Float, String, DateTime, DECIMAL, ForeignKey, Enum
+from sqlalchemy import create_engine, Column, Integer, Float, String, DateTime, DECIMAL, ForeignKey, Enum,func
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 import csv
@@ -10,10 +11,9 @@ from pydantic import BaseModel, EmailStr, validator, ConfigDict
 from sqlalchemy.exc import IntegrityError
 from passlib.context import CryptContext
 from jose import JWTError, jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from typing import Optional, List
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.sql import func
 
 app = FastAPI()
 # Configura CORS
@@ -438,51 +438,54 @@ def actualizar_o_insertar(db: Session, modelo, nuevo_registro):
         # Si no existe, lo insertamos
         db.add(nuevo_registro)
 
-#ESQUEMAS
-#Definición de esquemas para cada tipo de dato
-class WeightData(BaseModel):
-    weight: float
-    date: datetime
 
-class HeightData(BaseModel):
-    height: float
-    date: datetime
-
-class WaterConsumptionData(BaseModel):
-    waterAmount: float
-    date: datetime
-
-class ExerciseData(BaseModel):
-    exerciseName: str
-    duration: int
-    date: datetime
-
-class DailyStepsData(BaseModel):
-    stepsAmount: int
-    date: datetime
-
-class BodyFatPercentageData(BaseModel):
-    fatPercentage: float
-    date: datetime
-
-class BodyCompositionData(BaseModel):
-    muscle: float
-    fat: float
-    water:float
-    date: datetime
-
-#Esquema principal para la respuesta
-class DashboardData(BaseModel):
-    weights: Optional[WeightData]
-    heights: Optional[HeightData]
-    water_consumptions: Optional[WaterConsumptionData]
-    exercises: Optional[ExerciseData]
-    daily_steps: Optional[DailyStepsData]
-    body_fat_percentages: Optional[BodyFatPercentageData]
-    body_compositions: Optional[BodyCompositionData]
-
-#NECESITO HACER ENPOINT GET, PARA OBTENER LOS DATOS DEL USUARIO LOGEADO, LOS DATOS QUE TENGO QUE OBTENER DEL USUARIO ES EL DATO MAS
-#DE HOY, SI NO TIENE DATOS DE HOY, SE OBTIENEN LOS MAS RECIENTES, PARA FILTRALOS SE DEBE UTILIZAR MAX
-#ADEMAS LOS DATOS QUE SE VAN A RECUPERAR DE LA BASE, ES EL DATO MAS RECIENTE LIGADO AL USUARIO
-#ES DECIR SE OBTIENE SU weights, heights, water_consumptions, exercises, daily_steps, body_fat_percentajes y body_compositions MAS RECIENTE, SI NO HAY UN DATO CON LA FECHA DEL DIA PRESENTE
-#EN CASO DE NO HABER DATOS LA CONSULTA NO DEBE DAR ERROR, SIMPLEMENTE NO LOS ENVIA (NULL) (YA QUE AL INICIAR SESION POR PRIMERA VEZ EL USUARIO EL USUARIO NO VA A TENER DATOS)
+@app.get("/user/data/", response_model=dict)
+async def get_user_data(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    user_id = current_user.id
+    today = date.today()
+    
+    # Obtener los datos más recientes o de hoy para cada tabla
+    weights = db.query(Weight).filter(Weight.userId == user_id).order_by(
+        Weight.date.desc()).first()
+    
+    heights = db.query(Height).filter(Height.userId == user_id).order_by(
+        Height.date.desc()).first()
+    
+    body_fat_percentage = db.query(BodyFatPercentage).filter(BodyFatPercentage.userId == user_id).order_by(
+        BodyFatPercentage.date.desc()).first()
+    
+    body_composition = db.query(BodyComposition).filter(BodyComposition.userId == user_id).order_by(
+        BodyComposition.date.desc()).first()
+    
+    water_consumption = db.query(WaterConsumption).filter(WaterConsumption.userId == user_id).order_by(
+        WaterConsumption.date.desc()).first()
+    
+    daily_steps = db.query(DailySteps).filter(DailySteps.userId == user_id).order_by(
+        DailySteps.date.desc()).first()
+    
+    exercise = db.query(Exercise).filter(Exercise.userId == user_id).order_by(
+        Exercise.date.desc()).first()
+    
+    # Si no hay datos de peso o altura, buscar en la tabla User
+    weight_value = weights.weight if weights else current_user.current_weight
+    height_value = heights.height if heights else current_user.current_height
+    
+    # Estructurar la respuesta con los datos encontrados
+    response = {
+        "weight": weight_value,
+        "height": height_value,
+        "body_fat_percentage": body_fat_percentage.fat_percentage if body_fat_percentage else None,
+        "body_composition": {
+            "fat": body_composition.fat if body_composition else None,
+            "muscle": body_composition.muscle if body_composition else None,
+            "water": body_composition.water if body_composition else None,
+        },
+        "water_consumption": water_consumption.water_amount if water_consumption else None,
+        "daily_steps": daily_steps.steps_amount if daily_steps else None,
+        "exercise": {
+            "name": exercise.exercise_name if exercise else None,
+            "duration": exercise.duration if exercise else None,
+        }
+    }
+    
+    return response
