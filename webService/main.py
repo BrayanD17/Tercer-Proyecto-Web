@@ -17,7 +17,7 @@ from typing import Optional
 from fastapi import Path, Query
 from typing import Optional, List
 from fastapi.security import OAuth2PasswordBearer
-
+from sqlalchemy import func
 app = FastAPI()
 # Configura CORS
 app.add_middleware(
@@ -137,6 +137,7 @@ class Exercise(Base):
 
 # Crear las tablas
 Base.metadata.create_all(bind=engine)
+
 
 # Modelo de solicitud
 class RegisterUserRequest(BaseModel):
@@ -410,6 +411,69 @@ async def importar_sensores(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=f"Error al importar datos: {e}")
+
+
+@app.get("/historical_data/")
+async def get_historical_data(
+    tipo_dato: str,
+    periodo: str,
+    db: Session = Depends(get_db)
+):
+    # Determinar la fecha de inicio según el periodo seleccionado
+    today = datetime.today()
+    if periodo == "1 semana":
+        start_date = today - timedelta(weeks=1)
+    elif periodo == "1 mes":
+        start_date = today - timedelta(days=30)
+    elif periodo == "3 meses":
+        start_date = today - timedelta(days=90)
+    elif periodo == "6 meses":
+        start_date = today - timedelta(days=180)
+    elif periodo == "1 año":
+        start_date = today - timedelta(days=365)
+    else:
+        raise HTTPException(status_code=400, detail="Periodo inválido")
+
+    # Consulta de datos y agregación basada en el tipo de dato
+    if tipo_dato == "peso":
+        data = db.query(Weight.date, func.avg(Weight.weight).label("value")) \
+                 .filter(Weight.date >= start_date) \
+                 .group_by(Weight.date) \
+                 .all()
+    elif tipo_dato == "musculo":
+        data = db.query(BodyComposition.date, func.avg(BodyComposition.muscle).label("value")) \
+                 .filter(BodyComposition.date >= start_date) \
+                 .group_by(BodyComposition.date) \
+                 .all()
+    elif tipo_dato == "grasa":
+        data = db.query(BodyFatPercentage.date, func.avg(BodyFatPercentage.fat_percentage).label("value")) \
+                 .filter(BodyFatPercentage.date >= start_date) \
+                 .group_by(BodyFatPercentage.date) \
+                 .all()
+    elif tipo_dato == "agua":
+        data = db.query(WaterConsumption.date, func.sum(WaterConsumption.water_amount).label("value")) \
+                 .filter(WaterConsumption.date >= start_date) \
+                 .group_by(WaterConsumption.date) \
+                 .all()
+    elif tipo_dato == "pasos":
+        data = db.query(DailySteps.date, func.sum(DailySteps.steps_amount).label("value")) \
+                 .filter(DailySteps.date >= start_date) \
+                 .group_by(DailySteps.date) \
+                 .all()
+    elif tipo_dato == "ejercicio":
+        data = db.query(Exercise.date, func.sum(Exercise.duration).label("value")) \
+                 .filter(Exercise.date >= start_date) \
+                 .group_by(Exercise.date) \
+                 .all()
+    else:
+        raise HTTPException(status_code=400, detail="Tipo de dato no válido")
+
+    # Si no se encuentran datos, lanzar un error
+    if not data:
+        raise HTTPException(status_code=404, detail="Datos no encontrados para el periodo seleccionado")
+
+    # Formatear los resultados para retornar JSON
+    return [{"date": d.date.strftime('%Y-%m-%d'), "value": d.value} for d in data]
 
 # Configuración del token
 SECRET_KEY = "your_secret_key"

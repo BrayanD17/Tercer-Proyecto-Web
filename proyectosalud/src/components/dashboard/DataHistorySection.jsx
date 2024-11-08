@@ -3,8 +3,8 @@ import "../../styles/DataHistorySection.css";
 import ChartHistorical from "../graphics/ChartHistorical";
 
 const DataHistory = () => {
-    const [periodo, setPeriodo] = useState('1 semana');
-    const [tipoGrafico, setTipoGrafico] = useState('peso');
+    const [periodo, setPeriodo] = useState('');
+    const [tipoGrafico, setTipoGrafico] = useState('');
 
     const historicalDataStatic = {
         peso: [
@@ -84,8 +84,9 @@ const DataHistory = () => {
             <h1>Histórico de datos</h1>
             <div className="select-container">
                 <div className="select-period">
-                    <label htmlFor="periodo">Selecciona el período: </label>
+                    <label htmlFor="periodo">Periodo </label>
                     <select id="periodo" onChange={(e) => setPeriodo(e.target.value)} value={periodo}>
+                        <option value="" disabled>Seleccione un periodo</option>
                         <option value="1 semana">1 semana</option>
                         <option value="1 mes">1 mes</option>
                         <option value="3 meses">3 meses</option>
@@ -94,8 +95,9 @@ const DataHistory = () => {
                     </select>
                 </div>
                 <div className="select-graphic">
-                    <label htmlFor="tipoGrafico">Selecciona el histórico: </label>
+                    <label htmlFor="tipoGrafico">Histórico </label>
                     <select id="tipoGrafico" onChange={handleTipoGraficoChange} value={tipoGrafico}>
+                        <option value="" disabled>Seleccione un histórico</option>
                         <option value="peso">Histórico de peso</option>
                         <option value="musculo">Histórico de músculo</option>
                         <option value="grasa">Histórico del porcentaje de grasa corporal</option>
@@ -106,7 +108,6 @@ const DataHistory = () => {
                 </div>
             </div>
             <div className="historical-chart">
-                 {/*Verificar cual tipo de grafico es mejor usar (se debe modificar y ver como se van a mostrar el historico de agua y ejercicios)*/}
                 {historicalDataStatic[tipoGrafico] && (
                     <ChartHistorical 
                         data={historicalDataStatic[tipoGrafico]} 
