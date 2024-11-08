@@ -6,9 +6,10 @@ import { AuthContext } from '../../context/AuthContext';
 const ViewProfile = ({ username, profileUpdated }) => {
   const { getUserProfile } = useContext(AuthContext);
   const [profile, setProfile] = useState(null);
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toISOString().slice(0, 19).replace("T", " ");
+    return date.toISOString().split('T')[0];
   };
 
   useEffect(() => {
