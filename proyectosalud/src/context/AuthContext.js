@@ -5,7 +5,6 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [username, setUsername] = useState(null);
-  const [dashboardData,setDashboardData]=useState(null);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
@@ -174,37 +173,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const getDataDashboardOverview = async()=>{
-    if(!token){
-      console.error("Token no disponible");
-      return;
-    }
-
-    try {
-      const response = await fetch("http://127.0.0.1:8000/dashboard_overview/",{
-        method:"GET",
-        headers:{
-           Authorization: `Bearer ${token}`,
-        }
-      });
-
-      if(response.ok){
-        const data = await response.json();
-        console.log("Datos obtenidos del servidor:", data);  // Agrega este log
-        setDashboardData(data);
-      }else{
-        throw new Error("Error al obtener los datos los datos del usuario para mostrarlos en el dashboard")
-      }
-    } catch (error) {
-      console.error("Error al obtener los datos desde el server", error)
-    }
-  }
-
   return (
     <AuthContext.Provider value={{ 
       token, 
       username,
-      dashboardData,
       login, 
       register, 
       getUsernames, 
@@ -212,7 +184,6 @@ export const AuthProvider = ({ children }) => {
       updateUserField,
       changePassword, 
       logout :logoutUser,
-      getDataDashboardOverview,
     }}>
       {children}
     </AuthContext.Provider>
