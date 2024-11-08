@@ -174,6 +174,7 @@ class UserUpdateRequest(BaseModel):
         return value
 
 class PasswordChangeRequest(BaseModel):
+    username: str
     current_password: str
     new_password: str
     
@@ -286,34 +287,43 @@ async def update_user_field(
         db.rollback()
         raise HTTPException(status_code=400, detail="Error al actualizar el perfil")
     
-@app.post("/user/{username}/change-password")
+@app.post("/user/change-password")
 async def change_password(
-    username: str,
     password_data: PasswordChangeRequest,
     db: Session = Depends(get_db)
 ):
-    user = db.query(User).filter(User.username == username).first()
+    print("Iniciando el cambio de contraseña")
+    print("Datos recibidos para cambiar contraseña:", password_data)
+    
+    # Buscar al usuario por el nombre de usuario
+    user = db.query(User).filter(User.username == password_data.username).first()
+    print("Usuario encontrado:", user.username if user else "No encontrado")
+    
+    # Verificar si el usuario existe
     if not user:
+        print("Usuario no encontrado")
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     
     # Verificar si la contraseña actual es correcta
     if not pwd_context.verify(password_data.current_password, user.password):
+        print("Contraseña actual incorrecta")
         raise HTTPException(status_code=400, detail="La contraseña actual es incorrecta")
     
-    # Validar la nueva contraseña (puedes añadir más validaciones si es necesario)
+    # Validar la nueva contraseña
     if len(password_data.new_password) < 10 or not any(c.isalpha() for c in password_data.new_password) or \
-       not any(c.isdigit() for c in password_data.new_password) or not any(c in '!@#$%^&*(),.?":{}|<>' for c in password_data.new_password):
+        not any(c.isdigit() for c in password_data.new_password) or not any(c in '!@#$%^&*(),.?":{}|<>' for c in password_data.new_password):
+        print("Validación de nueva contraseña fallida")
         raise HTTPException(
             status_code=400, 
             detail="La nueva contraseña debe tener al menos 10 caracteres, incluir letras, números y al menos un símbolo."
         )
-
+    
     # Cifrar la nueva contraseña y actualizarla en la base de datos
     hashed_new_password = pwd_context.hash(password_data.new_password)
     user.password = hashed_new_password
     db.commit()
     db.refresh(user)
-
+    print("Contraseña actualizada exitosamente")
     return {"message": "Contraseña actualizada exitosamente"}
 
 # Servicio para importar datos de sensores

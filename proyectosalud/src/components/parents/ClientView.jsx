@@ -3,6 +3,7 @@ import NavigationBar from '../navbar-data/NavigationBar';
 import Dashboard from '../dashboard/Dashboard';
 import ViewProfile from '../profile/ViewProfile';
 import EditProfile from '../profile/EditProfile';
+import ChangePass from '../profile/ChangePass';
 import { AuthContext } from '../../context/AuthContext';
 import '../../styles/ClientView.css';
 
@@ -33,9 +34,13 @@ const ClientView = ({ username, onLogout }) => {
     setCurrentView('dashboard');
   };
 
+  const handleChangePassword = () => {
+    setCurrentView('changePass');
+  };
+
   const handleLogout = () => {
-    logout();
-    onLogout(); 
+    logout();  
+    onLogout();  
   };
 
   return (
@@ -45,6 +50,8 @@ const ClientView = ({ username, onLogout }) => {
         onDashboard={handleDashboard} 
         onViewProfile={handleViewProfile} 
         onEditProfile={handleEditProfile}
+        onChangePassword={handleChangePassword}
+        onLogout={handleLogout}
       />
       
       <div className={`view-container ${currentView === 'dashboard' ? 'show' : 'hide'}`}>
@@ -55,6 +62,9 @@ const ClientView = ({ username, onLogout }) => {
       </div>
       <div className={`view-container ${currentView === 'editProfile' ? 'show' : 'hide'}`}>
         <EditProfile username={username} onLogout={handleLogout} onEditComplete={handleEditComplete} />
+      </div>
+      <div className={`view-container ${currentView === 'changePass' ? 'show' : 'hide'}`}>
+        <ChangePass onLogout={handleLogout} />
       </div>
     </div>
   );
