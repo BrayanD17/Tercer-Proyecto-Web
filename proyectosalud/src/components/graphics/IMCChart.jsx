@@ -2,9 +2,9 @@ import React from "react";
 import Chart from 'react-apexcharts';
 
 const IMCChart = ({ peso, altura }) => {
-    const imc = (peso / (altura * altura)).toFixed(1); // Calcula el IMC y lo redondea a un decimal
 
-    //Rangos y colores del IMC
+    const imc = (peso / (altura * altura) * 10000).toFixed(1); 
+
     const ranges = [
         { label: 'Bajo peso', min: 0, max: 18.4, color: '#ADD8E6' },
         { label: 'Peso normal', min: 18.5, max: 24.9, color: '#90EE90' },
@@ -13,7 +13,6 @@ const IMCChart = ({ peso, altura }) => {
         { label: 'Obesidad mórbida', min: 35, max: 100, color: '#FF6347' }
     ];
 
-    // Rango actual del IMC
     const currentRange = ranges.find(range => imc >= range.min && imc <= range.max);
 
     return (

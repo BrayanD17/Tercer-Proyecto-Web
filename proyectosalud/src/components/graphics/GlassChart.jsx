@@ -1,8 +1,8 @@
 import React from "react";
 import Chart from 'react-apexcharts';
 
-const GlassChart = ({value, max }) => {
-    const valueInMl = value * 250; // convertir a ml
+const GlassChart = ({ value, max }) => {
+    const valueInMl = value * 250;
 
     return (
         <div style={{ width: '100%', height: '100%' }}>
@@ -22,7 +22,8 @@ const GlassChart = ({value, max }) => {
                     dataLabels: {
                         enabled: true,
                         formatter: function (val) {
-                            return `${val} ml`; //valor en ml
+                            const valueInGlasses = val / 250; // convertir ml a vasos
+                            return `${valueInGlasses.toFixed(1)} vasos (${val} ml)`; // mostrar en vasos y ml
                         },
                         style: {
                             fontSize: '14px',
@@ -50,4 +51,5 @@ const GlassChart = ({value, max }) => {
         </div>
     );
 };
+
 export default GlassChart;

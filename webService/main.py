@@ -463,8 +463,17 @@ async def get_user_data(db: Session = Depends(get_db), current_user: User = Depe
     daily_steps = db.query(DailySteps).filter(DailySteps.userId == user_id).order_by(
         DailySteps.date.desc()).first()
     
-    exercise = db.query(Exercise).filter(Exercise.userId == user_id).order_by(
+    # Obtener la fecha más reciente de ejercicios
+    most_recent_exercise_date = db.query(Exercise.date).filter(Exercise.userId == user_id).order_by(
         Exercise.date.desc()).first()
+    
+    # Obtener todos los ejercicios realizados en la fecha más reciente
+    exercises = []
+    if most_recent_exercise_date:
+        exercises = db.query(Exercise).filter(
+            Exercise.userId == user_id,
+            Exercise.date == most_recent_exercise_date.date  # Solo ejercicios de la fecha más reciente
+        ).all()
     
     # Si no hay datos de peso o altura, buscar en la tabla User
     weight_value = weights.weight if weights else current_user.current_weight
@@ -482,10 +491,9 @@ async def get_user_data(db: Session = Depends(get_db), current_user: User = Depe
         },
         "water_consumption": water_consumption.water_amount if water_consumption else None,
         "daily_steps": daily_steps.steps_amount if daily_steps else None,
-        "exercise": {
-            "name": exercise.exercise_name if exercise else None,
-            "duration": exercise.duration if exercise else None,
-        }
+        "exercises": [
+            {"name": exercise.exercise_name, "duration": exercise.duration} for exercise in exercises
+        ]
     }
     
     return response

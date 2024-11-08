@@ -27,12 +27,6 @@ const Dashboard =()=>{
     if (!userData) {
         return <div>Cargando datos...</div>;
     }
-
-    const exercisesData = [ 
-        { name: "Correr", duration: 30 },
-        { name: "Flexiones", duration: 15 },
-        { name: "Sentadillas", duration: 20 },
-    ];
     
     return(
         <div className="principal-container">
@@ -45,23 +39,31 @@ const Dashboard =()=>{
                     </div>
                     <div className="body-pat-percentaje-container">
                         <div className="content">
-                            <Scorecard peso={15} unit="%" fillColor="#333" title="Grasa Corporal" />
+                            <Scorecard peso={userData?.body_fat_percentage || 0} unit="%" fillColor="#333" title="Grasa Corporal" />
                         </div>
                     </div>
                     <div className="daily-step-container">
                         <div className="content">
-                            <StepsChart currentSteps={4500} goalSteps={6000}/>
+                            <StepsChart currentSteps={userData?.daily_steps||0} goalSteps={10000}/>
                         </div>
                     </div> 
                     <div className="body-composition-container">
-                        <BarChart
-                                title="Composición Corporal"
-                                data={[20, 30, 50]} // Ejemplo de datos: grasa, músculo, agua
-                                categories={['Grasa', 'Músculo', 'Agua']}
+                         <BarChart
+                            title="Composición Corporal"
+                            data={[
+                                userData.body_composition.fat || 0, 
+                                userData.body_composition.muscle || 0, 
+                                userData.body_composition.water || 0
+                            ]}
+                            categories={[
+                                userData.body_composition.fat !== null ? 'Grasa' : 'Sin datos', 
+                                userData.body_composition.muscle !== null ? 'Músculo' : 'Sin datos', 
+                                userData.body_composition.water !== null ? 'Agua' : 'Sin datos'
+                            ]}
                         />
                     </div>
                     <div className="exercise-container">
-                        <ExerciseTable exercises={exercisesData} />
+                        <ExerciseTable exercises={userData.exercises} /> 
                     </div>
                 </div>
                 <div className="derecha">
@@ -69,10 +71,10 @@ const Dashboard =()=>{
                         <HeightChart altura={userData.height} />
                     </div>  
                     <div className="IMC-conteiner">
-                        <IMCChart peso={45} altura={1.58} />
+                        <IMCChart peso={userData.weight} altura={userData.height} />
                     </div>
                     <div className="water-consumption-container"> 
-                        <GlassChart value={5} max={10}/>
+                        <GlassChart value={userData.water_consumption} max={12}/>
                     </div> 
                 </div>
             </div>

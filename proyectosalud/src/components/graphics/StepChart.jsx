@@ -21,6 +21,9 @@ const StepsChart = ({currentSteps, goalSteps }) => {
                                     show: true,
                                     fontSize: '15px',
                                     formatter: function () {
+                                        if (currentSteps > goalSteps) {
+                                            return `${currentSteps} / ${currentSteps}`;
+                                        }
                                         return `${currentSteps} / ${goalSteps}`;
                                     },
                                 },
