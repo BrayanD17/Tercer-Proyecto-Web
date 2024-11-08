@@ -15,19 +15,31 @@ const ChangePass = ({ onLogout }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
 
-  // Función para validar la contraseña
   const validatePassword = (password) => {
     const minLength = password.length >= 10;
     const hasLetter = /[a-zA-Z]/.test(password);
     const hasNumber = /\d/.test(password);
     const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-    if (!minLength) return "Incluir al menos 10 caracteres.";
-    if (!hasLetter) return "Incluir al menos una letra.";
-    if (!hasNumber) return "Incluir al menos un número.";
-    if (!hasSymbol) return "Incluir al menos un símbolo.";
+  
+    if (!minLength) {
+      showToast("La nueva contraseña debe tener al menos 10 caracteres.");
+      return "Incluir al menos 10 caracteres.";
+    }
+    if (!hasLetter) {
+      showToast("La nueva contraseña debe incluir al menos una letra.");
+      return "Incluir al menos una letra.";
+    }
+    if (!hasNumber) {
+      showToast("La nueva contraseña debe incluir al menos un número.");
+      return "Incluir al menos un número.";
+    }
+    if (!hasSymbol) {
+      showToast("La nueva contraseña debe incluir al menos un símbolo.");
+      return "Incluir al menos un símbolo.";
+    }
     return "";
   };
+  
 
   // Función para mostrar notificaciones de toast
   const showToast = (message, type = "error") => {
@@ -44,6 +56,7 @@ const ChangePass = ({ onLogout }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Enviado datos para cambiar contraseña:", { username, currentPassword, newPassword, confirmPassword });
     if (!username) {
       console.error("Username is not available");
       showToast("El nombre de usuario no está disponible.");
@@ -52,8 +65,7 @@ const ChangePass = ({ onLogout }) => {
     if (newPassword === currentPassword) {
       showToast("La nueva contraseña no puede ser igual a la actual.");
       return;
-    }
-
+    }    
     const passwordValidationMessage = validatePassword(newPassword);
     if (passwordValidationMessage) {
       setPasswordError(passwordValidationMessage);
