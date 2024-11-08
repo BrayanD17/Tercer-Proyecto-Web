@@ -25,7 +25,6 @@
     display: flex;
     align-items: center;
     margin: 18px 0;
-    position: relative;
 }
 
 .field label {
@@ -53,11 +52,7 @@
 .field .error {
     color: #d9534f;
     font-size: 0.9em;
-    margin-top: 5px;
-    position: absolute;
-    top: calc(100% + 2px);
-    left: 0;
-    width: 100%;
+    margin-left: 15px;
 }
 
 .logout-btn {
@@ -78,6 +73,7 @@
     background-color: #c9302c;
 }
 
+/* Icono de lápiz con mejor estilo */
 .field svg {
     margin-left: 12px;
     cursor: pointer;
@@ -89,6 +85,7 @@
     color: #1565C0;
 }
 
+/* Botón de guardar */
 .field button {
     margin-left: 10px;
     padding: 5px 12px;

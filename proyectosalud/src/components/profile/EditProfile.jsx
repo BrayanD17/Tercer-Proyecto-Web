@@ -11,7 +11,7 @@ const EditProfile = ({ username, onLogout, onEditComplete }) => {
   const [userData, setUserData] = useState(null);
   const [editableField, setEditableField] = useState(null);
   const [newUsername, setNewUsername] = useState('');
-  const [errorMessages, setErrorMessages] = useState({});
+  const [errorMessage, setErrorMessage] = useState('');
   const [usernames, setUsernames] = useState([]);
 
   useEffect(() => {
@@ -30,40 +30,32 @@ const EditProfile = ({ username, onLogout, onEditComplete }) => {
   const handleEditClick = (field) => {
     if (editableField === field) {
       setEditableField(null);
-      setErrorMessages({});
+      setErrorMessage('');
     } else {
       setEditableField(field);
-      setErrorMessages({});
+      setErrorMessage('');
     }
   };
 
   const handleSaveClick = async (field) => {
-    if (!userData[field] || userData[field] === '') {
-      setErrorMessages((prev) => ({ ...prev, [field]: 'Este campo no puede estar vacío' }));
-      return;
-    }
-  
     let updatedValue = userData[field];
-  
-    // Formatear la fecha en "YYYY-MM-DDTHH:MM:SS" para el backend
-    if (field === 'birthday') {
-      const date = new Date(updatedValue);
-      updatedValue = date.toISOString().split('T')[0] + "T00:00:00"; // Formato ISO sin desfase de días
-    }
-  
-    // Validación para el nombre de usuario
+    
     if (field === 'username' && newUsername !== userData.username) {
       if (usernames.includes(newUsername)) {
-        setErrorMessages((prev) => ({ ...prev, username: 'El nombre de usuario ya está en uso' }));
+        setErrorMessage('El nombre de usuario ya está en uso');
         return;
       }
       updatedValue = newUsername;
     }
   
+    if (field === 'birthday') {
+      updatedValue = `${userData.birthday} 00:00:00`;
+    }
+  
     const success = await updateUserField(username, field, updatedValue);
   
     if (success) {
-      toast.success(`${field} actualizado exitosamente`, { autoClose: 2000 });
+      toast.success(`${field} actualizado exitosamente`);
       if (field === 'username') {
         await logout();
         onLogout(); 
@@ -75,30 +67,22 @@ const EditProfile = ({ username, onLogout, onEditComplete }) => {
       toast.error(`Error al actualizar ${field}`);
     }
   };
-  
+    
   const handleChange = (field, value) => {
-    if (field === 'current_weight' || field === 'current_height') {
-      if (value < 0) {
-        setErrorMessages((prev) => ({ ...prev, [field]: 'El valor debe ser positivo' }));
-        return;
-      } else {
-        setErrorMessages((prev) => ({ ...prev, [field]: '' }));
-      }
-    }
-  
     if (field === 'email') {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(value) && value !== '') {
-        setErrorMessages((prev) => ({ ...prev, email: 'Ingrese un correo electrónico válido' }));
+      if (!emailRegex.test(value)) {
+        setErrorMessage('Ingrese un correo electrónico válido');
         return;
-      } else {
-        setErrorMessages((prev) => ({ ...prev, email: '' }));
       }
     }
-  
-    setErrorMessages((prev) => ({ ...prev, [field]: '' }));
+    if ((field === 'current_weight' || field === 'current_height') && value <= 0) {
+      toast.error(`${field === 'current_weight' ? 'Peso' : 'Altura'} debe ser un valor positivo.`);
+      return;
+    }
+    setErrorMessage('');
     setUserData((prevData) => ({ ...prevData, [field]: value }));
-  };  
+  };
 
   if (!userData) return <p>Cargando datos...</p>;
 
@@ -109,14 +93,14 @@ const EditProfile = ({ username, onLogout, onEditComplete }) => {
         <img src={LogoHealthSync} alt="Logo" className="logo" />
         <h2>Editar Perfil</h2>
       </div>
-  
+
       <div className="profile-info">
         <div className="field">
-          <label>Correo:</label>
+          <label>Correo electrónico:</label>
           {editableField === 'email' ? (
             <input
               type="email"
-              value={userData.email || ''}
+              value={userData.email}
               onChange={(e) => handleChange('email', e.target.value)}
             />
           ) : (
@@ -126,11 +110,11 @@ const EditProfile = ({ username, onLogout, onEditComplete }) => {
           {editableField === 'email' && (
             <button onClick={() => handleSaveClick('email')}>Guardar</button>
           )}
-          {errorMessages.email && <p className="error">{errorMessages.email}</p>}
+          {errorMessage && <p className="error">{errorMessage}</p>}
         </div>
-  
+
         <div className="field">
-          <label>Usuario:</label>
+          <label>Nombre de usuario:</label>
           {editableField === 'username' ? (
             <input
               type="text"
@@ -144,16 +128,16 @@ const EditProfile = ({ username, onLogout, onEditComplete }) => {
           {editableField === 'username' && (
             <button onClick={() => handleSaveClick('username')}>Guardar</button>
           )}
-          {errorMessages.username && <p className="error">{errorMessages.username}</p>}
+          {errorMessage && <p className="error">{errorMessage}</p>}
         </div>
-  
+
         <div className="field">
           <label>Peso actual:</label>
           {editableField === 'current_weight' ? (
             <input
               type="number"
               step="0.1"
-              value={userData.current_weight || ''}
+              value={userData.current_weight}
               onChange={(e) => handleChange('current_weight', parseFloat(e.target.value))}
             />
           ) : (
@@ -163,16 +147,15 @@ const EditProfile = ({ username, onLogout, onEditComplete }) => {
           {editableField === 'current_weight' && (
             <button onClick={() => handleSaveClick('current_weight')}>Guardar</button>
           )}
-          {errorMessages.current_weight && <p className="error">{errorMessages.current_weight}</p>}
         </div>
-  
+
         <div className="field">
           <label>Altura actual:</label>
           {editableField === 'current_height' ? (
             <input
               type="number"
               step="0.1"
-              value={userData.current_height || ''}
+              value={userData.current_height}
               onChange={(e) => handleChange('current_height', parseFloat(e.target.value))}
             />
           ) : (
@@ -182,32 +165,30 @@ const EditProfile = ({ username, onLogout, onEditComplete }) => {
           {editableField === 'current_height' && (
             <button onClick={() => handleSaveClick('current_height')}>Guardar</button>
           )}
-          {errorMessages.current_height && <p className="error">{errorMessages.current_height}</p>}
         </div>
-  
+
         <div className="field">
-          <label>Fecha:</label>
+          <label>Fecha de nacimiento:</label>
           {editableField === 'birthday' ? (
             <input
-              type="date"
-              value={userData.birthday ? userData.birthday.split('T')[0] : ''} // Mostrar solo la parte de la fecha en el input
+              type="datetime-local"
+              value={userData.birthday}
               onChange={(e) => handleChange('birthday', e.target.value)}
             />
           ) : (
-            <span>{userData.birthday ? userData.birthday.split('T')[0] : ''}</span> // Mostrar solo la fecha en formato YYYY-MM-DD
+            <span>{userData.birthday}</span>
           )}
           <Pencil size={16} onClick={() => handleEditClick('birthday')} />
           {editableField === 'birthday' && (
             <button onClick={() => handleSaveClick('birthday')}>Guardar</button>
           )}
-          {errorMessages.birthday && <p className="error">{errorMessages.birthday}</p>}
         </div>
-  
+
         <div className="field">
           <label>Género:</label>
           {editableField === 'gender' ? (
             <select
-              value={userData.gender || ''}
+              value={userData.gender}
               onChange={(e) => handleChange('gender', e.target.value)}
             >
               <option value="Masculino">Masculino</option>
@@ -220,11 +201,10 @@ const EditProfile = ({ username, onLogout, onEditComplete }) => {
           {editableField === 'gender' && (
             <button onClick={() => handleSaveClick('gender')}>Guardar</button>
           )}
-          {errorMessages.gender && <p className="error">{errorMessages.gender}</p>}
         </div>
       </div>
     </div>
-  );  
+  );
 };
 
 export default EditProfile;
