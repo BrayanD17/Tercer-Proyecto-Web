@@ -1,79 +1,57 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import "../../styles/DataHistorySection.css";
-import ChartHistorical from "../graphics/ChartHistorical";
+import ChartPeso from "../graphics/ChartPeso";
+import ChartMusculo from "../graphics/ChartMusculo";
+import ChartGrasa from "../graphics/ChartGrasa";
+import ChartAgua from "../graphics/ChartAgua";
+import ChartPasos from "../graphics/ChartPasos";
+import ChartEjercicio from "../graphics/ChartEjercicio";
+import { AuthContext } from "../../context/AuthContext";
 
 const DataHistory = () => {
+    const { token } = useContext(AuthContext);
     const [periodo, setPeriodo] = useState('1 semana');
     const [tipoGrafico, setTipoGrafico] = useState('peso');
+    const [historicalData, setHistoricalData] = useState([]);
+    const [isLoading, setIsLoading] = useState(false); // Para manejar el estado de carga
 
-    const historicalDataStatic = {
-        peso: [
-          { date: "2024-10-01", value: 70 },
-          { date: "2024-10-02", value: 71 },
-          { date: "2024-10-03", value: 70.5 },
-          { date: "2024-10-04", value: 71.2 },
-          { date: "2024-10-05", value: 70.8 },
-          { date: "2024-10-06", value: 70 },
-          { date: "2024-09-05", value: 69.5 },
-          { date: "2024-09-14", value: 67 },
-          { date: "2024-09-12", value: 68 },
-          { date: "2024-09-10", value: 69 },
-          { date: "2024-09-08", value: 55 },
-          { date: "2024-07-05", value: 56},
-          { date: "2024-07-02", value: 57 },
-          { date: "2024-07-03", value: 58},
-          { date: "2024-07-01", value: 57 },
-          { date: "2024-07-03", value: 58},
-          { date: "2024-07-01", value: 57 },
-          { date: "2024-07-03", value: 58},
-          { date: "2024-07-01", value: 57 },
-        ],
-        musculo: [
-          { date: "2024-10-01", value: 25 },
-          { date: "2024-10-02", value: 25.5 },
-          { date: "2024-10-03", value: 26 },
-          { date: "2024-10-04", value: 26.5 },
-          { date: "2024-10-05", value: 27 },
-          { date: "2024-10-06", value: 27.5 },
-          { date: "2024-10-07", value: 28 },
-        ],
-        grasa: [
-          { date: "2024-10-01", value: 20 },
-          { date: "2024-10-02", value: 19.5 },
-          { date: "2024-10-03", value: 19 },
-          { date: "2024-10-04", value: 18.8 },
-          { date: "2024-10-05", value: 18.5 },
-          { date: "2024-10-06", value: 18.2 },
-          { date: "2024-10-07", value: 18 },
-        ],
-        agua: [
-          { date: "2024-10-01", value: 2 },
-          { date: "2024-10-02", value: 2.5 },
-          { date: "2024-10-03", value: 3 },
-          { date: "2024-10-04", value: 2.8 },
-          { date: "2024-10-05", value: 3.1 },
-          { date: "2024-10-06", value: 2.9 },
-          { date: "2024-10-07", value: 3 },
-        ],
-        pasos: [
-          { date: "2024-10-01", value: 8000 },
-          { date: "2024-10-02", value: 12000 },
-          { date: "2024-10-03", value: 10000 },
-          { date: "2024-10-04", value: 7000 },
-          { date: "2024-10-05", value: 9500 },
-          { date: "2024-10-06", value: 11000 },
-          { date: "2024-10-07", value: 9000 },
-        ],
-        ejercicio: [
-          { date: "2024-10-01", value: 30 },
-          { date: "2024-10-02", value: 45 },
-          { date: "2024-10-03", value: 60 },
-          { date: "2024-10-04", value: 50 },
-          { date: "2024-10-05", value: 40 },
-          { date: "2024-10-06", value: 70 },
-          { date: "2024-10-07", value: 55 },
-        ]
+    // Función para obtener los datos del backend
+    const fetchData = async () => {
+        setIsLoading(true); // Empieza el loading
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/historico?tipo_dato=${tipoGrafico}&periodo=${periodo}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log("Datos obtenidos del servidor:", data);
+
+            // Asumiendo que data.data contiene el array de 61 datos, formatea los datos para el gráfico
+            const formattedData = data.data.map(item => ({
+                date: item.date,
+                value: item.value
+            }));
+
+            setHistoricalData(formattedData); // Actualiza el estado con los datos formateados
+        } catch (error) {
+            console.error("Error al obtener los datos:", error);
+        } finally {
+            setIsLoading(false); // Termina el loading
+        }
     };
+
+    // Llamar a la función fetchData cuando el componente se monta o cuando el tipo de gráfico o período cambian
+    useEffect(() => {
+        fetchData();
+    }, [periodo, tipoGrafico]);
 
     const handleTipoGraficoChange = (e) => {
         setTipoGrafico(e.target.value);
@@ -84,8 +62,9 @@ const DataHistory = () => {
             <h1>Histórico de datos</h1>
             <div className="select-container">
                 <div className="select-period">
-                    <label htmlFor="periodo">Selecciona el período: </label>
+                    <label htmlFor="periodo">Período </label>
                     <select id="periodo" onChange={(e) => setPeriodo(e.target.value)} value={periodo}>
+                        
                         <option value="1 semana">1 semana</option>
                         <option value="1 mes">1 mes</option>
                         <option value="3 meses">3 meses</option>
@@ -94,7 +73,7 @@ const DataHistory = () => {
                     </select>
                 </div>
                 <div className="select-graphic">
-                    <label htmlFor="tipoGrafico">Selecciona el histórico: </label>
+                    <label htmlFor="tipoGrafico">Histórico </label>
                     <select id="tipoGrafico" onChange={handleTipoGraficoChange} value={tipoGrafico}>
                         <option value="peso">Histórico de peso</option>
                         <option value="musculo">Histórico de músculo</option>
@@ -105,14 +84,22 @@ const DataHistory = () => {
                     </select>
                 </div>
             </div>
+
             <div className="historical-chart">
-                 {/*Verificar cual tipo de grafico es mejor usar (se debe modificar y ver como se van a mostrar el historico de agua y ejercicios)*/}
-                {historicalDataStatic[tipoGrafico] && (
-                    <ChartHistorical 
-                        data={historicalDataStatic[tipoGrafico]} 
-                        tipo={tipoGrafico === "peso" ? "line" : tipoGrafico === "musculo" ? "area" :tipoGrafico === "grasa" ? "line": "bar"}
-                        title={`Gráfico de ${tipoGrafico} durante ${periodo}`} 
-                    />
+                {/* Mostrar mensaje si no hay datos */}
+                {isLoading ? (
+                    <p>Cargando datos...</p>
+                ) : historicalData.length === 0 ? (
+                    <p>No hay datos disponibles para el período y tipo de gráfico seleccionados.</p>
+                ) : (
+                    <>
+                        {tipoGrafico === "peso" && <ChartPeso data={historicalData} title={`Gráfico de ${tipoGrafico} durante ${periodo}`} />}
+                        {tipoGrafico === "musculo" && <ChartMusculo data={historicalData} title={`Gráfico de ${tipoGrafico} durante ${periodo}`} />}
+                        {tipoGrafico === "grasa" && <ChartGrasa data={historicalData} title={`Gráfico de ${tipoGrafico} durante ${periodo}`} />}
+                        {tipoGrafico === "agua" && <ChartAgua data={historicalData} title={`Gráfico de ${tipoGrafico} durante ${periodo}`} />}
+                        {tipoGrafico === "pasos" && <ChartPasos data={historicalData} title={`Gráfico de ${tipoGrafico} durante ${periodo}`} />}
+                        {tipoGrafico === "ejercicio" && <ChartEjercicio data={historicalData} title={`Gráfico de ${tipoGrafico} durante ${periodo}`} />}
+                    </>
                 )}
             </div>
         </div>
