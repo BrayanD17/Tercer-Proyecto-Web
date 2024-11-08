@@ -2,16 +2,19 @@ import React from "react";
 import Chart from "react-apexcharts";
 
 const ChartMusculo = ({ data, title }) => {
+  // Filtrar datos válidos (eliminar NaN y valores infinitos)
+  const validData = data.filter(item => !isNaN(item.value) && isFinite(item.value));
+
   const seriesData = [
     {
       name: title,
-      data: data.map((item) => ({ x: item.date, y: item.value })),
+      data: validData.map(item => (isFinite(item.value) ? item.value : 0)) // Reemplazar infinitos por 0 o un valor por defecto
     },
   ];
 
   const chartOptions = {
     chart: {
-      type: "area",
+      type: "bar", // Tipo de gráfico, puede cambiarse a 'line' si prefieres
       height: 350,
       zoom: {
         enabled: true,
@@ -19,7 +22,8 @@ const ChartMusculo = ({ data, title }) => {
     },
     xaxis: {
       type: "category",
-      categories: data.map((item) => item.date),
+      // Usamos las fechas del data filtrado
+      categories: validData.map((item) => item.date),
       title: {
         text: "Fecha",
       },

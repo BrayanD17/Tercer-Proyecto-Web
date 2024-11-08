@@ -13,9 +13,11 @@ const DataHistory = () => {
     const [periodo, setPeriodo] = useState('1 semana');
     const [tipoGrafico, setTipoGrafico] = useState('peso');
     const [historicalData, setHistoricalData] = useState([]);
+    const [isLoading, setIsLoading] = useState(false); // Para manejar el estado de carga
 
     // Función para obtener los datos del backend
     const fetchData = async () => {
+        setIsLoading(true); // Empieza el loading
         try {
             const response = await fetch(`http://127.0.0.1:8000/historico?tipo_dato=${tipoGrafico}&periodo=${periodo}`, {
                 method: 'GET',
@@ -41,6 +43,8 @@ const DataHistory = () => {
             setHistoricalData(formattedData); // Actualiza el estado con los datos formateados
         } catch (error) {
             console.error("Error al obtener los datos:", error);
+        } finally {
+            setIsLoading(false); // Termina el loading
         }
     };
 
@@ -79,10 +83,14 @@ const DataHistory = () => {
                     </select>
                 </div>
             </div>
+
             <div className="historical-chart">
-                {/* Verifica que los datos existan y luego pasa los datos al gráfico */}
-                {historicalData.length > 0 && (
-                    // Condicionalmente renderizamos el componente adecuado
+                {/* Mostrar mensaje si no hay datos */}
+                {isLoading ? (
+                    <p>Cargando datos...</p>
+                ) : historicalData.length === 0 ? (
+                    <p>No hay datos disponibles para el período y tipo de gráfico seleccionados.</p>
+                ) : (
                     <>
                         {tipoGrafico === "peso" && <ChartPeso data={historicalData} title={`Gráfico de ${tipoGrafico} durante ${periodo}`} />}
                         {tipoGrafico === "musculo" && <ChartMusculo data={historicalData} title={`Gráfico de ${tipoGrafico} durante ${periodo}`} />}
