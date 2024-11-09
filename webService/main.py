@@ -545,7 +545,7 @@ def actualizar_o_insertar(db: Session, modelo, nuevo_registro):
         # Si no existe, lo insertamos
         db.add(nuevo_registro)
 
-
+#Get para obtener los datos para el dashboard de vista general
 @app.get("/user/data/", response_model=dict)
 async def get_user_data(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     user_id = current_user.id
