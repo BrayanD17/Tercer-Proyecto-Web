@@ -15,7 +15,7 @@ const ChartMusculo = ({ data, title }) => {
 
   const chartOptions = {
     chart: {
-      type: "area", // Tipo de gráfico, puede cambiarse a 'line' si prefieres
+      type: "area",
       height: 350,
       zoom: {
         enabled: true,
